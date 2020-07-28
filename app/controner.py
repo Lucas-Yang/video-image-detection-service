@@ -20,11 +20,7 @@ def get_dot_index():
         return Response(json.dumps({
             "code": 0,
             "message": "Success",
-            "index": {
-                "first_frame_time": 111,
-                "freeze_time": 60,
-                "total_time": 120
-                      }
+            "index": result_json
         }), content_type='application/json')
     else:
         return Response(json.dumps({

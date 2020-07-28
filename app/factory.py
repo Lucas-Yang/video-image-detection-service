@@ -1,12 +1,19 @@
 """
-工具文件：封装各种操作类，例如日志，数据基础库操作，缓存，接口输入参数校验等等
+工具文件：封装各种操作类，例如日志，数据库操作封装，缓存，接口输入参数校验等等
 """
 
 import os
 import cloghandler
 import json
 import logging
+import time
 from jsonschema import validate
+from pymongo import MongoClient
+
+MONGO_URL = 'mongodb://burytest:GbnO35lpzAyjkPqSXQTiHwLuDs2r4gcR@172.22.34.102:3301/test' \
+            '?authSource=burytest&replicaSet=bapi&readPreference=primary&appname=MongoDB%2' \
+            '0Compass&ssl=false'
+MONGO_DB = 'burytest'
 
 
 class LogManager(object):
@@ -149,6 +156,40 @@ class FormatChecker(object):
             self.logger.error(err)
             return False
         return True
+
+
+class MyMongoClient(object):
+    """mongo 操作类
+    """
+    def __init__(self):
+        client = MongoClient(MONGO_URL)
+        self.db = client.get_database(MONGO_DB)
+        self.db_initial_time = time.strftime("%Y-%m-%d %H:%M:%S")
+
+    def db(self):
+        """
+        :return:
+        """
+        return self.db
+
+    def insert(self, collection, data):
+        """
+        :param collection:
+        :param data:
+        :return:
+        """
+        if not isinstance(data, dict):
+            raise Exception("args `data` is not dict, plz check!")
+        data['create_time'] = self.db_initial_time
+        self.db.get_collection(collection).insert_one(data)
+
+    def query(self, collection, select=None):
+        """
+        :param collection:
+        :param select:
+        :return:
+        """
+        return self.db.get_collection(collection).find(select, no_cursor_timeout=True)
 
 
 if __name__ == "__main__":
