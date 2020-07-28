@@ -7,9 +7,10 @@
 | 获取方式 | 指标    |
 |------|-------|
 | 打点数据 | 首帧时间  |
-|      | 卡顿率   |
+|      | 卡顿时间  |
 |      | 丢帧率   |
-|      | 播放异常率 |
+|      | 视频基础数据 |
+|      | ijk进程占用系统资源 |
 | cv计算 | 首帧时间  |
 |      | 卡顿率   |
 |      | 播放异常率 |
@@ -21,7 +22,7 @@
 - URL: /v1/index/dot
 - Header:
 - Body: 
-```json
+```
 {
   "uid": "xxxx", // 用户id
   "bvid": "xxxx", // 设备id
@@ -31,12 +32,23 @@
 
 - Response:
 - Body:
-```json
+```
 {
-  "first_video_time": "",
-  "black_screen_rate": "",
-  "freeze_rate": "",
-  "error_rate": ""
+   "code": 0,
+   "message": "Success",
+   "index": {
+            "video_duration": "", // 视频总时长
+            "audio_duration": "", // 音频总时长
+            "video_bitrate": "", // 视频码率
+            "audio_bitrate": "", // 音频码率
+            "first_video_time": "", // 视频首帧时间(包括渲染)
+            "first_audio_time": "", // 音频首帧时间
+            "freeze_rate": "", // 丢帧率
+            "asset_update_count": "", // 资源刷新次数
+            "audio_pts_diff_time": "", // 音频播放偏差 
+            "ijk_cpu_rate": "", // ijk进程cpu占有率
+            "ijk_mem": "" //ijk进程内存占用
+        }
 }
 ```
 ### 2 CV方式获取
