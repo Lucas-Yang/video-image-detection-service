@@ -2,7 +2,7 @@
 dao层
 """
 from app.third_lib.dot_predict import DotVideoIndex
-from app.third_lib.model_predict import DeepVideoIndex
+from app.third_lib.cv_predict import DeepVideoIndex
 
 
 class PlayerIndex(object):
