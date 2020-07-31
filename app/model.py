@@ -41,4 +41,5 @@ class PlayerIndex(object):
         :param video_info:
         :return:
         """
+        deep_index_handler = DeepVideoIndex(video_info)
         return
