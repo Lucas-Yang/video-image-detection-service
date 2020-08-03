@@ -142,6 +142,7 @@ class DeepVideoIndex(object):
 
     def __init__(self, video_info=None):
         self.video_info = video_info
+        self.frames_info_dict = {}
 
         self.__first_frame_server_url = "http://172.16.60.71:8501/v1/models/first_frame_model:predict"
         self.__start_app_server_url = "http://172.16.60.71:8501/v1/models/start_app_model:predict"
@@ -177,13 +178,14 @@ class DeepVideoIndex(object):
         else:
             res.raise_for_status()
 
-    def __cut_frame_upload(self, in_file, frame_num, video_duration):
+    def __cut_frame_upload(self):
         """ 分帧并上传bfs
-        :param in_file:
-        :param frame_num:
-        :param video_duration:
         :return:
         """
+        video_stream_info = self.__get_video_info()
+        frame_num = int(video_stream_info['nb_frames'])  # 视频帧数
+        video_duration = float(video_stream_info['duration'])  # 视频时长
+        in_file = self.video_info.get("temp_video_path")
         image_dict = {}
         per_frame_time = video_duration / frame_num
         for i in range(frame_num):
@@ -198,7 +200,7 @@ class DeepVideoIndex(object):
                 image_dict[frame_name] = frame_time_step
             except Exception as err:
                 logger.error(err)
-        return image_dict
+        self.frames_info_dict = image_dict
 
     @staticmethod
     def __load_image_url(image_url: str):
@@ -242,16 +244,17 @@ class DeepVideoIndex(object):
         """ 将视频分帧，上传到bfs，再对所有的帧进行分类
         :return: 所有帧的分类结果 [{cls: image_url}]
         """
-        video_frame_list = []
         cls_result_list = []
-        for frame_data in video_frame_list:
-            cls_result_list.append(self.__frame_cls(self.__upload_frame(frame_data), model_type=model_type))
+        for frame_data_url in self.frames_info_dict.items():
+            cls_result_list.append(self.__frame_cls(frame_data_url, model_type=model_type))
         return cls_result_list
 
     def get_first_video_time(self):
-        """
+        """ 播放器首帧时间
         :return:
         """
+        self.__cut_frame_upload()  # 分帧上传帧到bfs，避免本地压力
+
         first_frame_handler = FirstFrameTimer()
         first_frame_time, cls_results_dict = first_frame_handler. \
             get_first_frame_time(self.__video_predict(ModelType.FIRSTFRAME))

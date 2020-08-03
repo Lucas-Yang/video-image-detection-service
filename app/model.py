@@ -45,5 +45,6 @@ class PlayerIndex(object):
         :return:
         """
         deep_index_handler = DeepVideoIndex(self.cv_info_dict)
+        first_frame_time, cls_results_dict = deep_index_handler.get_first_video_time()
         self.__write_db()
         return
