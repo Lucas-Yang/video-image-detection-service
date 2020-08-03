@@ -2,21 +2,26 @@
 模型预测封装类
 通过调用该类获取视频播放质量指标
 """
+import cv2
 import json
 import re
 import requests
+import ffmpeg
+import numpy
+import sys
 from collections import OrderedDict
 import numpy as np
 from PIL import Image
 from io import BytesIO
 from enum import Enum
+from app.controner import logger
 
 
 class ModelType(Enum):
     """模型调用枚举，目前暂定支持五种模型，分别调用不同的模型服务
     """
-    FIRSTFRAME = 1   # 播放首帧
-    STARTAPP = 2   # app启动时间
+    FIRSTFRAME = 1  # 播放首帧
+    STARTAPP = 2  # app启动时间
     FREEZESREEN = 3  # 卡顿
     BLURREDSCREEN = 4  # 花屏
     BLACKSCREEN = 5  # 黑屏
@@ -25,6 +30,7 @@ class ModelType(Enum):
 class FirstFrameTimer(object):
     """首帧获取类
     """
+
     def __init__(self,
                  stage_name_list: list = None
                  ):
@@ -80,6 +86,7 @@ class FirstFrameTimer(object):
 class StartAppTimer(FirstFrameTimer):
     """ 启动时间计算类
     """
+
     def __init__(self):
         self.stage_name_list = ["阶段0：app打开", "阶段1：app推荐页加载", "阶段2：app正确启动页面", "阶段3：其他无关页面"]
         super.__init__()
@@ -88,6 +95,7 @@ class StartAppTimer(FirstFrameTimer):
 class PlayerFreezeScreenWatcher(object):
     """ 卡顿计算类
     """
+
     def __init__(self):
         pass
 
@@ -102,6 +110,7 @@ class PlayerFreezeScreenWatcher(object):
 class PlayerBlurredScreenWatcher(object):
     """ 花屏计算类
     """
+
     def __init__(self):
         pass
 
@@ -115,6 +124,7 @@ class PlayerBlurredScreenWatcher(object):
 class PlayerBlackScreenWatcher(object):
     """ 黑屏计算类
     """
+
     def __init__(self):
         pass
 
@@ -129,6 +139,7 @@ class PlayerBlackScreenWatcher(object):
 class DeepVideoIndex(object):
     """
     """
+
     def __init__(self, video_info=None):
         self.video_info = video_info
 
@@ -138,6 +149,21 @@ class DeepVideoIndex(object):
         self.__black_screen_server_url = ""
         self.__freeze_screen_server_url = ""
         self.__bfs_url = "http://uat-bfs.bilibili.co/bfs/davinci"  # 上传分帧图片到bfs保存
+
+    def __get_video_info(self):
+        """
+        获取视频基本信息
+        """
+        try:
+            probe = ffmpeg.probe(self.video_info.get("temp_video_path"))
+            video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+            if video_stream is None:
+                logger.info('No video stream found', file=sys.stderr)
+                sys.exit(1)
+            return video_stream
+        except ffmpeg.Error as err:
+            logger.info(str(err.stderr, encoding='utf8'))
+            sys.exit(1)
 
     def __upload_frame(self, frame_data):
         """ 上传分帧数据到bfs
@@ -150,6 +176,29 @@ class DeepVideoIndex(object):
             return res.headers.get('Location')
         else:
             res.raise_for_status()
+
+    def __cut_frame_upload(self, in_file, frame_num, video_duration):
+        """ 分帧并上传bfs
+        :param in_file:
+        :param frame_num:
+        :param video_duration:
+        :return:
+        """
+        image_dict = {}
+        per_frame_time = video_duration / frame_num
+        for i in range(frame_num):
+            frame_time_step = per_frame_time * i
+            frame_bytes_data, err = (
+                ffmpeg.input(in_file).filter('select', 'gte(n,{})'.format(i)).
+                    output('pipe:', vframes=1, format='image2', vcodec='png').
+                    run(capture_stdout=True)
+            )
+            try:
+                frame_name = self.__upload_frame(frame_bytes_data)
+                image_dict[frame_name] = frame_time_step
+            except Exception as err:
+                logger.error(err)
+        return image_dict
 
     @staticmethod
     def __load_image_url(image_url: str):
@@ -204,7 +253,7 @@ class DeepVideoIndex(object):
         :return:
         """
         first_frame_handler = FirstFrameTimer()
-        first_frame_time, cls_results_dict = first_frame_handler.\
+        first_frame_time, cls_results_dict = first_frame_handler. \
             get_first_frame_time(self.__video_predict(ModelType.FIRSTFRAME))
         return first_frame_time, cls_results_dict
 

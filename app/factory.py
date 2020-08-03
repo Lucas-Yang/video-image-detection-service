@@ -93,7 +93,7 @@ class FormatChecker(object):
     """
 
     def __init__(self):
-        self.logger = LogManager('server.log').logger
+        pass
 
     def player_index_dot_check(self, input_json):
         """ 打点指标获取接口 输入参数校验
