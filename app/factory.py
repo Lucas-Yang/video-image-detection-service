@@ -38,16 +38,16 @@ class LogManager(object):
         self.logger = logging.getLogger(self.__name)
         self.logger.setLevel(self.__level)
 
-        self.__stream_handler = None
-        self.__file_handler = None
+        self.stream_handler = None
+        self.file_handler = None
         self.get_logger()
 
     def __ini_handler(self):
         """
         :return:
         """
-        self.__stream_handler = logging.StreamHandler()
-        self.__file_handler = cloghandler.ConcurrentRotatingFileHandler(self.__path, "a", 1024 * 1024 * 100, 5,
+        self.stream_handler = logging.StreamHandler()
+        self.file_handler = cloghandler.ConcurrentRotatingFileHandler(self.__path, "a", 1024 * 1024 * 100, 5,
                                                                         encoding='utf-8')
 
     def __set_handler(self, level='DEBUG'):
@@ -55,10 +55,11 @@ class LogManager(object):
         :param level:
         :return:
         """
-        self.__stream_handler.setLevel(level)
-        self.__file_handler.setLevel(level)
-        self.logger.addHandler(self.__stream_handler)
-        self.logger.addHandler(self.__file_handler)
+        if not self.logger.handlers:
+            self.stream_handler.setLevel(level)
+            self.file_handler.setLevel(level)
+            self.logger.addHandler(self.stream_handler)
+            self.logger.addHandler(self.file_handler)
 
     def __set_formatter(self):
         """
@@ -67,14 +68,14 @@ class LogManager(object):
         formatter = logging.Formatter('%(asctime)s-%(name)s-%(filename)s-[line:%(lineno)d]'
                                       '-%(levelname)s: %(message)s',
                                       datefmt='%a, %d %b %Y %H:%M:%S')
-        self.__stream_handler.setFormatter(formatter)
-        self.__file_handler.setFormatter(formatter)
+        self.stream_handler.setFormatter(formatter)
+        self.file_handler.setFormatter(formatter)
 
     def __close_handler(self):
         """
         :return:
         """
-        self.__stream_handler.close()
+        self.stream_handler.close()
         # self.__file_handler.close()
 
     def get_logger(self):

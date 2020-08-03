@@ -3,6 +3,7 @@
 通过调用该类获取视频播放质量指标
 """
 from app.factory import MyMongoClient
+from app.factory import LogManager
 
 
 class DotVideoIndex(object):
@@ -13,6 +14,7 @@ class DotVideoIndex(object):
         """
         :param video_dict:
         """
+        self.__logger = LogManager("server.log").logger
         self.__video_dict = video_dict
         player_event_dict = self.__get_event_info()
         self.event_dict = {

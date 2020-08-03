@@ -2,19 +2,17 @@
 模型预测封装类
 通过调用该类获取视频播放质量指标
 """
-import cv2
 import json
 import re
 import requests
 import ffmpeg
-import numpy
 import sys
 from collections import OrderedDict
 import numpy as np
 from PIL import Image
 from io import BytesIO
 from enum import Enum
-from app.controner import logger
+from app.factory import LogManager
 
 
 class ModelType(Enum):
@@ -143,6 +141,7 @@ class DeepVideoIndex(object):
     def __init__(self, video_info=None):
         self.video_info = video_info
         self.frames_info_dict = {}
+        self.__logger = LogManager("server.log").logger
 
         self.__first_frame_server_url = "http://172.16.60.71:8501/v1/models/first_frame_model:predict"
         self.__start_app_server_url = "http://172.16.60.71:8501/v1/models/start_app_model:predict"
@@ -159,11 +158,11 @@ class DeepVideoIndex(object):
             probe = ffmpeg.probe(self.video_info.get("temp_video_path"))
             video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
             if video_stream is None:
-                logger.info('No video stream found', file=sys.stderr)
+                self.__logger.info('No video stream found', file=sys.stderr)
                 sys.exit(1)
             return video_stream
         except ffmpeg.Error as err:
-            logger.info(str(err.stderr, encoding='utf8'))
+            self.__logger.info(str(err.stderr, encoding='utf8'))
             sys.exit(1)
 
     def __upload_frame(self, frame_data):
@@ -199,7 +198,7 @@ class DeepVideoIndex(object):
                 frame_name = self.__upload_frame(frame_bytes_data)
                 image_dict[frame_name] = frame_time_step
             except Exception as err:
-                logger.error(err)
+                self.__logger.error(err)
         self.frames_info_dict = image_dict
 
     @staticmethod
@@ -254,7 +253,6 @@ class DeepVideoIndex(object):
         :return:
         """
         self.__cut_frame_upload()  # 分帧上传帧到bfs，避免本地压力
-
         first_frame_handler = FirstFrameTimer()
         first_frame_time, cls_results_dict = first_frame_handler. \
             get_first_frame_time(self.__video_predict(ModelType.FIRSTFRAME))
