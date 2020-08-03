@@ -187,7 +187,7 @@ class DeepVideoIndex(object):
         in_file = self.video_info.get("temp_video_path")
         image_dict = {}
         per_frame_time = video_duration / frame_num
-        for i in range(frame_num):
+        for i in range(3):
             frame_time_step = per_frame_time * i
             frame_bytes_data, err = (
                 ffmpeg.input(in_file).filter('select', 'gte(n,{})'.format(i)).
@@ -201,12 +201,12 @@ class DeepVideoIndex(object):
                 self.__logger.error(err)
         self.frames_info_dict = image_dict
 
-    @staticmethod
-    def __load_image_url(image_url: str):
+    def __load_image_url(self, image_url: str):
         """ 从url 读取图片数据, 返回多位数组(模型服务接口输入是数据，不是np)
         :param image_url:
         :return:
         """
+        self.__logger.info(image_url)
         img = Image.open(BytesIO(requests.get(image_url).content))
         img = img.convert('RGB')
         img = img.resize((160, 90), Image.NEAREST)
@@ -244,7 +244,7 @@ class DeepVideoIndex(object):
         :return: 所有帧的分类结果 [{cls: image_url}]
         """
         cls_result_list = []
-        for frame_data_url in self.frames_info_dict.items():
+        for frame_data_url, _ in self.frames_info_dict.items():
             cls_result_list.append(self.__frame_cls(frame_data_url, model_type=model_type))
         return cls_result_list
 
