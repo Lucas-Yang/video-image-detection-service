@@ -1,12 +1,15 @@
 # Python:
 *.py[cod]
 *.so
+*.DS_Store
+*.mp4
 *.egg
 *.egg-info
 *.log
 test.py
 .idea*
 venv
+
 # My configurations:
 db.ini
 deploy_key_rsa

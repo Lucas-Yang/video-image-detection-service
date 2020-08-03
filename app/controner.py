@@ -2,13 +2,15 @@
 播放器指标路由
 """
 import json
+import os
 from flask import request, Response, Blueprint
-from app.factory import FormatChecker
+from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex
 
 player_app = Blueprint('player_app', __name__)
 format_handler = FormatChecker()
 model_handler = PlayerIndex()
+logger = LogManager("server.log").logger
 
 
 @player_app.route('/index/dot', methods=['POST'])
@@ -28,14 +30,21 @@ def get_dot_index():
             "message": "input error"}), content_type='application/json')
 
 
-@player_app.route('/index/cv', methods=['POST'])
+@player_app.route('/video/upload', methods=['POST'])
 def update_cv_data():
-    pass
+    logger.info("111111")
+    f = request.files['file']
+    # basepath = os.path.dirname(os.path.realpath(__file__))
+    base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
+    file_path = os.path.join(base_path, f.filename)
+    f.save(file_path)
+    model_handler.get_cv_index({"video_path": file_path, "save_path": base_path})
+    return "1111"
 
 
 @player_app.route('/index/cv?<task_id>', methods=['GET'])
 def get_cv_index():
-    pass
+    return Response("cv index")
 
 
 @player_app.route('/')
