@@ -41,8 +41,9 @@ def update_cv_data():
     base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
     file_path = os.path.join(base_path, str(datetime.now()) + f.filename)
     f.save(file_path)   # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
-    model_handler = PlayerIndex(cv_info_dict={"temp_video_path": file_path, "save_path": base_path})
+    model_handler = PlayerIndex(cv_info_dict={"temp_video_path": file_path})
     model_handler.get_cv_index()
+    os.remove(file_path)
     return "1111"
 
 
