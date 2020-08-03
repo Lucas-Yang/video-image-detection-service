@@ -1,8 +1,9 @@
 # /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import Flask
-from app.controner import player_app
+from flask import Flask, current_app
+from app.controller import player_app
+from app.factory import LogManager
 
 app = Flask(__name__)
 app.register_blueprint(player_app, url_prefix='/player')

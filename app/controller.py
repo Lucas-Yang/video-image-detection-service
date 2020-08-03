@@ -3,20 +3,24 @@
 """
 import json
 import os
-from flask import request, Response, Blueprint
+from datetime import datetime
+
+from flask import request, Response, Blueprint, current_app
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex
 
+
 player_app = Blueprint('player_app', __name__)
 format_handler = FormatChecker()
-model_handler = PlayerIndex()
+
 logger = LogManager("server.log").logger
 
 
 @player_app.route('/index/dot', methods=['POST'])
 def get_dot_index():
+    model_handler = PlayerIndex()
     input_data = request.data.decode('utf-8')
-    if format_handler.fuzz_task_check(input_data):
+    if format_handler.player_index_dot_check(input_data):
         input_json = json.loads(input_data)
         result_json = model_handler.get_dot_index(input_json)
         return Response(json.dumps({
@@ -32,13 +36,13 @@ def get_dot_index():
 
 @player_app.route('/video/upload', methods=['POST'])
 def update_cv_data():
-    logger.info("111111")
     f = request.files['file']
-    # basepath = os.path.dirname(os.path.realpath(__file__))
+    logger.info(type(f))
     base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
-    file_path = os.path.join(base_path, f.filename)
-    f.save(file_path)
-    model_handler.get_cv_index({"video_path": file_path, "save_path": base_path})
+    file_path = os.path.join(base_path, str(datetime.now()) + f.filename)
+    f.save(file_path)   # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
+    model_handler = PlayerIndex(cv_info_dict={"temp_video_path": file_path, "save_path": base_path})
+    model_handler.get_cv_index()
     return "1111"
 
 
@@ -49,6 +53,7 @@ def get_cv_index():
 
 @player_app.route('/')
 def heart_beat():
+    logger.info("testtest")
     return Response("hello,world")
 
 
