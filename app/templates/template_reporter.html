@@ -7,7 +7,7 @@
 <body>
 <h2>一 视频帧分类</h2>
 {% for key, value in info.image_dict.items() %}
-<h3>{{info.stage[key]}}</h3>
+<h3>{{key}}</h3>
 <center class="half">
 {% for image in value %}
     <img src="{{image}}", width="208", height="384", title="{{image}}">

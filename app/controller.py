@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 
 from flask import request, Response, Blueprint, render_template
+from celery.result import AsyncResult
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex
 from app.tasks import celery_app, cv_index_task
@@ -50,10 +51,36 @@ def update_cv_data():
     }), content_type='application/json')
 
 
-
-@player_app.route('/index/cv?<task_id>', methods=['GET'])
+@player_app.route('/index/cv', methods=['GET'])
 def get_cv_index():
-    return Response("cv index")
+    task_id = request.args.get('task_id')
+    if task_id:
+        res = AsyncResult(task_id, app=celery_app)
+        if res.failed():
+            return Response(json.dumps({
+                "code": -2,
+                "message": "task failed, plz try again"}), content_type='application/json')
+        elif res.status == "PENDING" or res.status == "RETRY" or res.status == "STARTED":
+            return Response(json.dumps({
+                "code": -4,
+                "message": "plz wait a moment"}), content_type='application/json')
+        elif res.status == "SUCCESS":
+            if res.result[0]:
+                logger.info(res)
+                # return res.result[1]
+                return render_template('template_reporter.html', info=res.result[1])
+            else:
+                return Response(json.dumps({
+                    "code": -3,
+                    "message": "inner error"}), content_type='application/json')
+        else:
+            return Response(json.dumps({
+                "code": -3,
+                "message": "inner error"}), content_type='application/json')
+    else:
+        return Response(json.dumps({
+            "code": -1,
+            "message": "input error, make sure task id is correct"}), content_type='application/json')
 
 
 @player_app.route('/')

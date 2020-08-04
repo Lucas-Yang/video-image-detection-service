@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from celery import Celery
 from app.factory import LogManager
 from app.model import PlayerIndex
@@ -25,7 +27,16 @@ def cv_index_task(cv_info_dict):
     try:
         model_handler = PlayerIndex(cv_info_dict=cv_info_dict)
         cv_result_index = model_handler.get_cv_index()
+        logger.info(cv_result_index)
+        for i in cv_result_index.keys():
+            logger.info(type(i))
+
     except Exception as err:
         logger.error(err)
         task_success_flag = False
+        cv_result_index = {}
     return task_success_flag, cv_result_index
+
+
+if __name__ == '__main__':
+    pass

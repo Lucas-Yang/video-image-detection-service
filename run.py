@@ -8,6 +8,5 @@ from app.factory import LogManager
 app = Flask(__name__)
 app.register_blueprint(player_app, url_prefix='/player')
 
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=2233, debug=False)
+    app.run(host="0.0.0.0", port=2233, debug=True)
