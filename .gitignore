@@ -9,6 +9,7 @@
 test.py
 .idea*
 venv
+data
 
 # My configurations:
 db.ini
