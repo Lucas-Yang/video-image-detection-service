@@ -8,10 +8,10 @@ from datetime import datetime
 from flask import request, Response, Blueprint, render_template
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex
+from app.tasks import celery_app, cv_index_task
 
 player_app = Blueprint('player_app', __name__, template_folder='templates')
 format_handler = FormatChecker()
-
 logger = LogManager("server.log").logger
 
 
@@ -36,15 +36,19 @@ def get_dot_index():
 @player_app.route('/video/upload', methods=['POST'])
 def update_cv_data():
     f = request.files['file']
-
     base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
+    if not os.path.exists(base_path):
+        os.mkdir(base_path)
     file_path = os.path.join(base_path, str(datetime.now()) + f.filename)
     f.save(file_path)  # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
+    r = cv_index_task.delay({"temp_video_path": file_path})
+    task_id = r.task_id
+    return Response(json.dumps({
+        "code": 0,
+        "message": "Success",
+        "task_id": task_id
+    }), content_type='application/json')
 
-    model_handler = PlayerIndex(cv_info_dict={"temp_video_path": file_path})
-    model_handler.get_cv_index()
-    os.remove(file_path)
-    return "1111"
 
 
 @player_app.route('/index/cv?<task_id>', methods=['GET'])

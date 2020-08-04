@@ -57,11 +57,33 @@
 - Method: ** POST **
 - URL: /player/video/upload
 - Header:
+```json
+{"Content-Type": "multipart/form-data"}
+```
 - Body: 
 ```json
 {
-  "video_path": "xxxx" // 上传文件名
+  "file":  [] # 视频文件
 }
+```
+- example
+```python
+import requests
+
+url = "http://0.0.0.0:2233/player/video/upload"
+
+payload = {}
+files = [
+  ('file', open('/xxx/xxx/screen.mp4','rb'))
+]
+headers = {
+  "Content-Type": "multipart/form-data"
+}
+
+response = requests.request("POST", url, headers=headers, data = payload, files = files)
+
+print(response.text.encode('utf8'))
+
 ```
 
 - Response:

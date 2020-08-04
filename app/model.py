@@ -46,5 +46,10 @@ class PlayerIndex(object):
         """
         deep_index_handler = DeepVideoIndex(self.cv_info_dict)
         first_frame_time, cls_results_dict = deep_index_handler.get_first_video_time()
+        cv_index_result = {
+            "image_dict": cls_results_dict,
+            "first_frame_time": first_frame_time,
+            "stage": ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
+        }
         # self.__write_db()
-        return "2222"
+        return cv_index_result
