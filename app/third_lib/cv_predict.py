@@ -30,13 +30,16 @@ class FirstFrameTimer(object):
     """
 
     def __init__(self,
+                 frame_info_dict: dict = None,
                  stage_name_list: list = None
                  ):
         """
         :param stage_name_list: 各个阶段的别名，用于生成报告
         """
+
         if stage_name_list is None:
             stage_name_list = ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
+        self.frame_info_dict = frame_info_dict  # frame时间戳映射表
         self.first_frame_time = 0
         self.stage_name_list = stage_name_list
         self._cls_dict = {}
@@ -46,7 +49,7 @@ class FirstFrameTimer(object):
         :return:
         """
         for key, value in self._cls_dict.items():
-            value.sort(key=lambda x: int(re.match(r'.*\/screen_(.*)_.*', x, re.M | re.I).group(1)))
+            value.sort(key=lambda x: self.frame_info_dict[x])
 
     def _reformat_result(self, predict_image_json):
         """ 将整个视频图片的预测结构分类整理成一个dict
@@ -64,20 +67,16 @@ class FirstFrameTimer(object):
         for predict_image_json in predict_result_list:
             self._reformat_result(predict_image_json)
         self._sort_reformat_result()
-        # print(json.dumps(self.__cls_dict, ensure_ascii=False))
+        print("排序结果: ", self._cls_dict)
         # 正常逻辑，每个阶段都正常识别
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
-            self.first_frame_time = float(re.match(r'.*\/screen_.*_(.*).png', self._cls_dict[2][0],
-                                                   re.M | re.I).group(1)) - \
-                                    float(re.match(r'.*\/screen_.*_(.*).png', self._cls_dict[0][0],
-                                                   re.M | re.I).group(1))
+            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0])) - \
+                                    float(self.frame_info_dict.get(self._cls_dict.get(0)[0]))
         # 当播放完成阶段没有时候，返回-1,给上层判断
-        elif len(self._cls_dict.get(2, [])) == 0 and len(self._cls_dict.get(1, [])) > 0:
-            self.first_frame_time = -1
         else:
-            pass
-        ordered_dict = OrderedDict(sorted(self._cls_dict.items(), key=lambda obj: obj[0]))
+            self.first_frame_time = -1
 
+        ordered_dict = OrderedDict(sorted(self._cls_dict.items(), key=lambda obj: obj[0]))
         return self.first_frame_time, ordered_dict
 
 
@@ -253,9 +252,12 @@ class DeepVideoIndex(object):
         :return:
         """
         self.__cut_frame_upload()  # 分帧上传帧到bfs，避免本地压力
-        first_frame_handler = FirstFrameTimer()
+        predict_result_list = self.__video_predict(ModelType.FIRSTFRAME)
+        print(predict_result_list)
+        first_frame_handler = FirstFrameTimer(frame_info_dict=self.frames_info_dict)
         first_frame_time, cls_results_dict = first_frame_handler. \
-            get_first_frame_time(self.__video_predict(ModelType.FIRSTFRAME))
+            get_first_frame_time(predict_result_list=predict_result_list)
+
         return first_frame_time, cls_results_dict
 
     def get_freeze_rate(self):
@@ -284,7 +286,6 @@ class DeepVideoIndex(object):
         black_screen_rate, cls_results_dict = black_handler. \
             get_black_screen(self.__video_predict(ModelType.BLACKSCREEN))
         return black_screen_rate, cls_results_dict
-        return
 
     def get_error_rate(self):
         """
