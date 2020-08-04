@@ -22,7 +22,7 @@
 - URL: /v1/index/dot
 - Header:
 - Body: 
-```
+```json5
 {
   "uid": "xxxx", // 用户id
   "bvid": "xxxx", // 设备id
@@ -32,12 +32,12 @@
 
 - Response:
 - Body:
-```
+```json5
 {
    "code": 0,
    "message": "Success",
    "index": {
-            "video_duration": "", // 视频总时长
+            "video_duration": "", // 视频总时长 
             "audio_duration": "", // 音频总时长
             "video_bitrate": "", // 视频码率
             "audio_bitrate": "", // 音频码率
@@ -57,13 +57,13 @@
 - Method: ** POST **
 - URL: /player/video/upload
 - Header:
-```json
+```json5
 {"Content-Type": "multipart/form-data"}
 ```
 - Body: 
-```json
+```json5
 {
-  "file":  [] # 视频文件
+  "file":  [] // 视频文件
 }
 ```
 - example
@@ -108,7 +108,7 @@ print(response.text.encode('utf8'))
 
 - Response:
 - Body:
-```json
+```json5
 {
   "first_video_time": "",
   "black_screen_rate": "",
