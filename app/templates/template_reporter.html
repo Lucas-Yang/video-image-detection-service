@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>帧分类结果</title>
+</head>
+<body>
+<h2>一 视频帧分类</h2>
+{% for key, value in info.image_dict.items() %}
+<h3>{{info.stage[key]}}</h3>
+<center class="half">
+{% for image in value %}
+    <img src="{{image}}", width="208", height="384", title="{{image}}">
+{% endfor %}
+</center>
+{% endfor %}
+
+
+<h2>二 计算结果统计</h2>
+<h3>首帧时间："{{info.first_frame_time}}"</h3>
+
+</body>
+</html>
