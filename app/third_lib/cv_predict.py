@@ -55,10 +55,10 @@ class FirstFrameTimer(object):
         """ 将整个视频图片的预测结构分类整理成一个dict
         :return:
         """
-        if list(predict_image_json.values())[0] in self._cls_dict:
-            self._cls_dict[list(predict_image_json.values())[0]].append(list(predict_image_json.keys())[0])
+        if int(list(predict_image_json.values())[0]) in self._cls_dict:
+            self._cls_dict[int(list(predict_image_json.values())[0])].append(list(predict_image_json.keys())[0])
         else:
-            self._cls_dict[list(predict_image_json.values())[0]] = [list(predict_image_json.keys())[0]]
+            self._cls_dict[int(list(predict_image_json.values())[0])] = [list(predict_image_json.keys())[0]]
 
     def get_first_frame_time(self, predict_result_list):
         """
