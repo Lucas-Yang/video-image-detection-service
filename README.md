@@ -55,7 +55,7 @@
 #### 上传视频接口
 - 接口描述: 该接口通过cv识别方式播放质量指标，异步接口, 上传视频文件接口
 - Method: ** POST **
-- URL: /v1/index/cv
+- URL: /player/video/upload
 - Header:
 - Body: 
 ```json
@@ -77,7 +77,7 @@
 #### 获取指标接口
 - 接口描述: 该接口通过cv识别方式或者播放质量指标，获取指标接口
 - Method: ** GET **
-- URL: /v1/index/cv?<task_id>
+- URL: /player/index/cv?<task_id>
 - Header:
 - Body: 
 ```json

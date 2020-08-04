@@ -5,12 +5,11 @@ import json
 import os
 from datetime import datetime
 
-from flask import request, Response, Blueprint, current_app
+from flask import request, Response, Blueprint, render_template
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex
 
-
-player_app = Blueprint('player_app', __name__)
+player_app = Blueprint('player_app', __name__, template_folder='templates')
 format_handler = FormatChecker()
 
 logger = LogManager("server.log").logger
@@ -40,7 +39,7 @@ def update_cv_data():
 
     base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
     file_path = os.path.join(base_path, str(datetime.now()) + f.filename)
-    f.save(file_path)   # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
+    f.save(file_path)  # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
 
     model_handler = PlayerIndex(cv_info_dict={"temp_video_path": file_path})
     model_handler.get_cv_index()
@@ -55,8 +54,11 @@ def get_cv_index():
 
 @player_app.route('/')
 def heart_beat():
-    logger.info("testtest")
-    return Response("hello,world")
+    info = {"image_dict": {0: ["", ""], 1: ["", ""], 2: ["", ""]},
+            "first_frame_time": 1,
+            "stage": ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
+            }
+    return render_template('template_reporter.html', info=info)
 
 
 if __name__ == "__main__":
