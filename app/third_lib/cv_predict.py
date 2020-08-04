@@ -2,10 +2,11 @@
 模型预测封装类
 通过调用该类获取视频播放质量指标
 """
+import cv2
 import json
-import re
-import requests
 import ffmpeg
+import numpy
+import requests
 import sys
 from collections import OrderedDict
 import numpy as np
@@ -186,15 +187,23 @@ class DeepVideoIndex(object):
         in_file = self.video_info.get("temp_video_path")
         image_dict = {}
         per_frame_time = video_duration / frame_num
-        for i in range(3):
+        for i in range(frame_num):
             frame_time_step = per_frame_time * i
             frame_bytes_data, err = (
                 ffmpeg.input(in_file).filter('select', 'gte(n,{})'.format(i)).
                     output('pipe:', vframes=1, format='image2', vcodec='png').
                     run(capture_stdout=True)
             )
+            # 图像灰度化
+            image_array = numpy.asarray(bytearray(frame_bytes_data), dtype="uint8")
+            image = cv2.imdecode(image_array, cv2.IMREAD_GRAYSCALE)
+            image = Image.fromarray(image)
+            img_byte_arr = BytesIO()
+            image.save(img_byte_arr, format='PNG')
+            img_byte_arr = img_byte_arr.getvalue()
+            # 上传
             try:
-                frame_name = self.__upload_frame(frame_bytes_data)
+                frame_name = self.__upload_frame(img_byte_arr)
                 image_dict[frame_name] = frame_time_step
             except Exception as err:
                 self.__logger.error(err)
