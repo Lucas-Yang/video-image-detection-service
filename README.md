@@ -125,6 +125,9 @@ print(response.text.encode('utf8'))
 - 分帧效率太低，一边分帧一边预测
 - 预测服务效率低，调研tensorflow serving的效率
 
+依赖文档
+- https://kkroening.github.io/ffmpeg-python/
+
 
 
 
