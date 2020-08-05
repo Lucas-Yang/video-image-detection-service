@@ -7,6 +7,7 @@ import cloghandler
 import json
 import logging
 import time
+import threading
 from jsonschema import validate
 from pymongo import MongoClient
 
@@ -191,6 +192,28 @@ class MyMongoClient(object):
         :return:
         """
         return self.db.get_collection(collection).find(select, no_cursor_timeout=True)
+
+
+class MyThread(threading.Thread):
+    """适配装饰器，重写Thread，新增get_result函数用于获取执行多线程函数的return值
+    """
+    def __init__(self, func, args=(), kwargs=None):
+        super(MyThread, self).__init__()
+        self.func = func
+        self.args = args
+        self.__logger = LogManager("server.log").logger
+        self.result = None
+
+    def run(self):
+        self.result = self.func(*self.args)
+
+    def get_result(self):
+        threading.Thread.join(self)
+        try:
+            return self.result  # 如果子线程不使用join方法，此处可能会报没有self.result的错误
+        except Exception as err:
+            self.__logger.error(err)
+            return None
 
 
 if __name__ == "__main__":

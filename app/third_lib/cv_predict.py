@@ -2,18 +2,49 @@
 模型预测封装类
 通过调用该类获取视频播放质量指标
 """
+from concurrent.futures.thread import ThreadPoolExecutor
+
 import cv2
 import json
-import ffmpeg
-import numpy
+import os
 import requests
-import sys
-from collections import OrderedDict
 import numpy as np
+import multiprocessing
+import queue
+
+from collections import OrderedDict
 from PIL import Image
 from io import BytesIO
 from enum import Enum
-from app.factory import LogManager
+
+from functools import wraps
+from app.factory import LogManager, MyThread
+
+
+def asyn_b(f):
+    """ DeepVideoIndex类函数的异步装饰器
+    :param f: 处理函数
+    :return: 封装了处理函数的线程
+    """
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        pool = multiprocessing.Pool()
+        async_result = pool.apply_async(f, args=args, kwargs=kwargs)
+        return async_result
+    return wrapper
+
+
+def my_async(f):
+    """DeepVideoIndex类函数的异步装饰器, 返回执行器，执行完后的结果通过调用task.get_result()
+    :param f:
+    :return:
+    """
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        task = MyThread(f, args=args, kwargs=kwargs)
+        task.start()
+        return task
+    return wrapper
 
 
 class ModelType(Enum):
@@ -149,80 +180,91 @@ class DeepVideoIndex(object):
         self.__black_screen_server_url = ""
         self.__freeze_screen_server_url = ""
         self.__bfs_url = "http://uat-bfs.bilibili.co/bfs/davinci"  # 上传分帧图片到bfs保存
+        self.__task_queue = queue.Queue()
 
     def __get_video_info(self):
         """
-        获取视频基本信息
+        opencv 获取视频基本信息
+        :return:
         """
-        try:
-            probe = ffmpeg.probe(self.video_info.get("temp_video_path"))
-            video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
-            if video_stream is None:
-                self.__logger.info('No video stream found', file=sys.stderr)
-                sys.exit(1)
-            return video_stream
-        except ffmpeg.Error as err:
-            self.__logger.info(str(err.stderr, encoding='utf8'))
-            sys.exit(1)
+        cap = cv2.VideoCapture(self.video_info.get("temp_video_path"))
+        total_frame = cap.get(7)  # 帧数
+        fps = cap.get(5)  # 帧率
+        per_frame_time = 1 / fps
+        return total_frame, fps, per_frame_time
 
+    @my_async
     def __upload_frame(self, frame_data):
         """ 上传分帧数据到bfs
         :param frame_data:
         :return:
         """
-        headers = {"Content-type": "image/png"}
-        res = requests.put(self.__bfs_url, data=frame_data, headers=headers)
-        if res.status_code == 200:
-            return res.headers.get('Location')
-        else:
-            res.raise_for_status()
+        try_time = 0
+        while try_time < 3:
+            try:
+                headers = {"Content-type": "image/png"}
+                res = requests.put(self.__bfs_url, data=frame_data, headers=headers)
+                if res.status_code == 200:
+                    return res.headers.get('Location')
+                else:
+                    res.raise_for_status()
+            except requests.exceptions.RequestException:
+                try_time += 1
+        raise Exception("access bfs error time > 3")
 
     def __cut_frame_upload(self):
-        """ 分帧并上传bfs
+        """ 基于opencv的切割图片并上传bfs, 每秒保存10帧，对于人的视觉来看足够
         :return:
         """
-        video_stream_info = self.__get_video_info()
-        frame_num = int(video_stream_info['nb_frames'])  # 视频帧数
-        video_duration = float(video_stream_info['duration'])  # 视频时长
-        in_file = self.video_info.get("temp_video_path")
-        image_dict = {}
-        per_frame_time = video_duration / frame_num
-        for i in range(frame_num):
-            frame_time_step = per_frame_time * i
-            frame_bytes_data, err = (
-                ffmpeg.input(in_file).filter('select', 'gte(n,{})'.format(i)).
-                    output('pipe:', vframes=1, format='image2', vcodec='png').
-                    run(capture_stdout=True)
-            )
-            # 图像灰度化
-            image_array = numpy.asarray(bytearray(frame_bytes_data), dtype="uint8")
-            image = cv2.imdecode(image_array, cv2.IMREAD_GRAYSCALE)
-            image = Image.fromarray(image)
-            img_byte_arr = BytesIO()
-            image.save(img_byte_arr, format='PNG')
-            img_byte_arr = img_byte_arr.getvalue()
-            # 上传
-            try:
-                frame_name = self.__upload_frame(img_byte_arr)
-                image_dict[frame_name] = frame_time_step
-            except Exception as err:
-                self.__logger.error(err)
-        self.frames_info_dict = image_dict
+        total_frame, fps, per_frame_time = self.__get_video_info()
+        cap = cv2.VideoCapture(self.video_info.get("temp_video_path"))
+        success, image = cap.read()
+        os.remove(self.video_info.get("temp_video_path"))  # 删除临时视频文件
+        count = 0
+        success = True
+        async_tasks = []
+        while success:
+            count += 1
+            if count % (fps // 10) == 0:
+                success, image = cap.read()
+                ret, buf = cv2.imencode(".png", image)
+                frame_byte = Image.fromarray(np.uint8(buf)).tobytes()
+                try:
+                    frame_async = self.__upload_frame(frame_byte)
+                    async_tasks.append([frame_async, count * per_frame_time])
+                except Exception as err:
+                    self.__logger.error(err)
+            else:
+                success, image = cap.read()
+                continue
 
-    def __load_image_url(self, image_url: str):
+        for async_task in async_tasks:
+            frame_name = async_task[0].get_result()
+            print(frame_name)
+            self.frames_info_dict[frame_name] = async_task[1]
+        # print(self.frames_info_dict)
+
+    @classmethod
+    def __load_image_url(cls, image_url: str):
         """ 从url 读取图片数据, 返回多位数组(模型服务接口输入是数据，不是np)
         :param image_url:
         :return:
         """
-        self.__logger.info(image_url)
-        img = Image.open(BytesIO(requests.get(image_url).content))
-        img = img.convert('RGB')
-        img = img.resize((160, 90), Image.NEAREST)
-        img = np.asarray(img)
-        img = img / 255  # 此处还需要将0-255转化为0-1
-        img = img.tolist()
-        return img
+        try_time = 0
+        while try_time < 3:
+            try:
+                img = Image.open(BytesIO(requests.get(image_url).content))
+                img = img.convert('RGB')
+                img = img.resize((160, 90), Image.NEAREST)
+                img = np.asarray(img)
+                img = img / 255  # 此处还需要将0-255转化为0-1
+                img = img.tolist()
+                return img
+            except Exception as err:
+                try_time += 1
+        raise Exception("access bfs error time > 3")
 
+    @my_async
     def __frame_cls(self, image_url: str, model_type):
         """ 调用模型服务，对帧分类
         :return:
@@ -236,24 +278,32 @@ class DeepVideoIndex(object):
         elif model_type == ModelType.FREEZESREEN:
             model_server_url = self.__freeze_screen_server_url
         elif model_type == ModelType.BLACKSCREEN:
-            model_server_url = ModelType.BLACKSCREEN
+            model_server_url = self.__black_screen_server_url
         else:
             raise Exception("model type is wrong or not supported")
 
         headers = {"content-type": "application/json"}
-        body = {"instances": [{"input_1": self.__load_image_url(image_url)}]}
+        body = {"instances": [{"input_1": self.__load_image_url(image_url=image_url)}]}
         response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
         response.raise_for_status()
         prediction = response.json()['predictions'][0]
         return {image_url: np.argmax(prediction)}
 
     def __video_predict(self, model_type: ModelType):
-        """ 将视频分帧，上传到bfs，再对所有的帧进行分类
+        """ 将视频分帧，上传到bfs，再对所有的帧进行分类,
+        调用self.__frame_cls 是异步任务，所以第二个for循环是用于获取结果
         :return: 所有帧的分类结果 [{cls: image_url}]
         """
         cls_result_list = []
+        async_tasks = []
         for frame_data_url, _ in self.frames_info_dict.items():
-            cls_result_list.append(self.__frame_cls(frame_data_url, model_type=model_type))
+            cls_result_async = self.__frame_cls(frame_data_url, model_type)
+            async_tasks.append(cls_result_async)
+
+        for async_task in async_tasks:
+            cls_result = async_task.get_result()
+            print(cls_result)
+            cls_result_list.append(cls_result)
         return cls_result_list
 
     def get_first_video_time(self):
@@ -262,7 +312,6 @@ class DeepVideoIndex(object):
         """
         self.__cut_frame_upload()  # 分帧上传帧到bfs，避免本地压力
         predict_result_list = self.__video_predict(ModelType.FIRSTFRAME)
-        print(predict_result_list)
         first_frame_handler = FirstFrameTimer(frame_info_dict=self.frames_info_dict)
         first_frame_time, cls_results_dict = first_frame_handler. \
             get_first_frame_time(predict_result_list=predict_result_list)

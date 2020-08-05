@@ -90,7 +90,3 @@ def heart_beat():
             "stage": ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
             }
     return render_template('template_reporter.html', info=info)
-
-
-if __name__ == "__main__":
-    pass
