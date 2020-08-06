@@ -41,7 +41,6 @@ class PlayerIndex(object):
 
     def get_cv_index(self):
         """获取视频计算数据
-
         :return:
         """
         deep_index_handler = DeepVideoIndex(self.cv_info_dict)

@@ -99,7 +99,7 @@ class FirstFrameTimer(object):
         for predict_image_json in predict_result_list:
             self._reformat_result(predict_image_json)
         self._sort_reformat_result()
-        print("排序结果: ", self._cls_dict)
+        # print("排序结果: ", self._cls_dict)
         # 正常逻辑，每个阶段都正常识别
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
             self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0])) - \
@@ -248,9 +248,9 @@ class DeepVideoIndex(object):
             self.frames_info_dict[frame_name] = async_task[1]
 
         # 实验
-        for key, _ in self.frames_info_dict.items():
-            print("0000", key)
-            break
+        # for key, _ in self.frames_info_dict.items():
+        #    print("0000", key)
+        #    break
 
     @classmethod
     def __load_image_url(cls, image_url: str):
@@ -318,7 +318,7 @@ class DeepVideoIndex(object):
             cls_result = async_task.result()
             cls_result_list.append(cls_result)
             # del async_tasks[async_task]
-        print("1111", cls_result_list[0])
+        # print("1111", cls_result_list[0])
         return cls_result_list
 
     def get_first_video_time(self):
