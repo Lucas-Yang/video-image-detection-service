@@ -237,8 +237,8 @@ class DeepVideoIndex(object):
                     async_tasks.append([frame_async, count * per_frame_time])
                 except Exception as err:
                     self.__logger.error(err)
-                if count > 100:
-                    break
+                # if count > 100:
+                #    break
             else:
                 success, image = cap.read()
                 continue
