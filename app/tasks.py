@@ -1,8 +1,11 @@
-from collections import OrderedDict
+"""
+celery异步任务执行
+"""
 
 from celery import Celery
 from app.factory import LogManager
 from app.model import PlayerIndex
+import traceback
 
 logger = LogManager('server.log').logger
 
@@ -30,10 +33,11 @@ def cv_index_task(cv_info_dict):
         logger.info(cv_result_index)
     except Exception as err:
         logger.error(err)
+        logger.error(traceback.format_exc())
         task_success_flag = False
         cv_result_index = {}
     return task_success_flag, cv_result_index
 
 
 if __name__ == '__main__':
-    pass
+    print('')
