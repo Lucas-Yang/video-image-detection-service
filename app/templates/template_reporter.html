@@ -10,7 +10,7 @@
 <h3>{{key}}</h3>
 <center class="half">
 {% for image in value %}
-    <img src="{{image}}", width="208", height="384", title="{{image}}">
+    <img src="{{image[0]}}", width="208", height="384", title="{{image[1]}}">
 {% endfor %}
 </center>
 {% endfor %}

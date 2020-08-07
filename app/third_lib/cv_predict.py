@@ -19,7 +19,7 @@ from enum import Enum
 from functools import wraps
 from app.factory import LogManager, MyThread
 
-thread_executor = ThreadPoolExecutor(max_workers=100)
+thread_executor = ThreadPoolExecutor(max_workers=200)
 
 
 def my_async_decorator(f):
@@ -27,10 +27,12 @@ def my_async_decorator(f):
     :param f:
     :return:
     """
+
     @wraps(f)
     def wrapper(*args, **kwargs):
         task = thread_executor.submit(f, *args)
         return task
+
     return wrapper
 
 
@@ -39,11 +41,13 @@ def my_async(f):
     :param f:
     :return:
     """
+
     @wraps(f)
     def wrapper(*args, **kwargs):
         task = MyThread(f, args=args, kwargs=kwargs)
         task.start()
         return task
+
     return wrapper
 
 
@@ -66,6 +70,7 @@ class FirstFrameTimer(object):
                  stage_name_list: list = None
                  ):
         """
+        :param frame_info_dict: 分帧预测信息字典{"frame_url": ["time_step", "predict_result"]}
         :param stage_name_list: 各个阶段的别名，用于生成报告
         """
 
@@ -74,37 +79,41 @@ class FirstFrameTimer(object):
         self.frame_info_dict = frame_info_dict  # frame时间戳映射表
         self.first_frame_time = 0
         self.stage_name_list = stage_name_list
-        self._cls_dict = {}
+        self._cls_dict = {}  # 整理后的字典 {"frame 分类": [["img_url1", "time_step1"], ["img_url2", "time_step2"]]}
 
     def _sort_reformat_result(self):
         """ 排序整理好后的分类dict
         :return:
         """
         for key, value in self._cls_dict.items():
-            value.sort(key=lambda x: self.frame_info_dict[x])
+            value.sort(key=lambda x: x[1])
 
-    def _reformat_result(self, predict_image_json):
+    def _reformat_result(self):
         """ 将整个视频图片的预测结构分类整理成一个dict
         :return:
         """
-        if int(list(predict_image_json.values())[0]) in self._cls_dict:
-            self._cls_dict[int(list(predict_image_json.values())[0])].append(list(predict_image_json.keys())[0])
-        else:
-            self._cls_dict[int(list(predict_image_json.values())[0])] = [list(predict_image_json.keys())[0]]
+        for img_url, time_result_list in self.frame_info_dict.items():
+            if int(time_result_list[1]) in self._cls_dict:
+                self._cls_dict[int(time_result_list[1])].append([img_url, float(time_result_list[0])])
+            else:
+                self._cls_dict[int(time_result_list[1])] = [[img_url, float(time_result_list[0])]]
 
-    def get_first_frame_time(self, predict_result_list):
+    def get_first_frame_time(self):
         """
         :return:
         """
-        for predict_image_json in predict_result_list:
-            self._reformat_result(predict_image_json)
+
+        self._reformat_result()
         self._sort_reformat_result()
         # print("排序结果: ", self._cls_dict)
         # 正常逻辑，每个阶段都正常识别
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
-            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0])) - \
-                                    float(self.frame_info_dict.get(self._cls_dict.get(0)[0]))
+            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])) - \
+                                    float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0]))
         # 当播放完成阶段没有时候，返回-1,给上层判断
+        elif len(self._cls_dict.get(1, [])) and len(self._cls_dict.get(2, [])):
+            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])) - \
+                                    float(self.frame_info_dict.get(self._cls_dict.get(1)[0][0]))
         else:
             self.first_frame_time = -1
 
@@ -168,6 +177,7 @@ class PlayerBlackScreenWatcher(object):
 class DeepVideoIndex(object):
     """ 视觉调用类对外接口类，可以得到视频的所有指标
     """
+
     def __init__(self, video_info=None):
         self.video_info = video_info
         self.frames_info_dict = {}
@@ -211,7 +221,36 @@ class DeepVideoIndex(object):
                 try_time += 1
         raise Exception("access bfs error time > 3")
 
-    def __cut_frame_upload(self):
+    @my_async_decorator
+    def __frame_cls(self, frame_list=None, model_type=None):
+        """ 调用模型服务，对帧分类
+        虽然是异步任务，但是可以把名字一一对应起来,前提是不使用as_completed，
+        后续可以把upload_frame任务和frame_cls任务合并成一个异步任务
+        :return:
+        """
+        if model_type == ModelType.STARTAPP:
+            model_server_url = self.__start_app_server_url
+        elif model_type == ModelType.FIRSTFRAME:
+            model_server_url = self.__first_frame_server_url
+        elif model_type == ModelType.BLURREDSCREEN:
+            model_server_url = self.__blurred_screen_server_url
+        elif model_type == ModelType.FREEZESREEN:
+            model_server_url = self.__freeze_screen_server_url
+        elif model_type == ModelType.BLACKSCREEN:
+            model_server_url = self.__black_screen_server_url
+        else:
+            raise Exception("model type is wrong or not supported")
+
+        headers = {"content-type": "application/json"}
+        body = {"instances": [{"input_1": frame_list}]}
+        # body = {"instances": [{"input_1": self.__load_image_url(image_url=image_url)}]}
+
+        response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
+        response.raise_for_status()
+        prediction = response.json()['predictions'][0]
+        return np.argmax(prediction)
+
+    def __cut_frame_upload_predict(self, model_type=None):
         """ 基于opencv的切割图片并上传bfs, 每秒保存10帧，对于人的视觉来看足够
         :return:
         """
@@ -221,36 +260,50 @@ class DeepVideoIndex(object):
         os.remove(self.video_info.get("temp_video_path"))  # 删除临时视频文件
         count = 0
         success = True
-        async_tasks = []
+        upload_async_tasks = []
+        predict_async_tasks = []
         while success:
             count += 1
             if count % (fps // 10) == 0:
                 success, image = cap.read()
-
                 ret, buf = cv2.imencode(".png", image)
                 frame_byte = Image.fromarray(np.uint8(buf)).tobytes()
-                # frame_list = (image / 255).tolist()
-                # print(self.__frame_cls(model_type=ModelType.FIRSTFRAME, image_list=frame_list))
-                # break
+
+                frame_list = (image / 255).tolist()
                 try:
-                    frame_async = self.__upload_frame(frame_byte)
-                    async_tasks.append([frame_async, count * per_frame_time])
+                    predict_async_task = self.__frame_cls(frame_list, model_type)
+                    predict_async_tasks.append(predict_async_task)
                 except Exception as err:
                     self.__logger.error(err)
-                # if count > 100:
-                #    break
+
+                try:
+                    frame_async_task = self.__upload_frame(frame_byte)
+                    upload_async_tasks.append([frame_async_task, count * per_frame_time])
+                except Exception as err:
+                    self.__logger.error(err)
+                # 实验
+                if count > 20:
+                    break
             else:
                 success, image = cap.read()
                 continue
 
-        for async_task in async_tasks:
-            frame_name = async_task[0].result()
-            self.frames_info_dict[frame_name] = async_task[1]
+        for upload_async_task, predict_async_task in zip(upload_async_tasks, predict_async_tasks):
+            try:
+                frame_name = upload_async_task[0].result(timeout=20)
+                print(frame_name)
+                predict_result = predict_async_task.result(timeout=20)
+                print(predict_result)
+            except TimeoutError as err:
+                self.__logger.error(err)
+                continue
+            self.frames_info_dict[frame_name] = [upload_async_task[1], predict_result]
 
         # 实验
-        # for key, _ in self.frames_info_dict.items():
-        #    print("0000", key)
-        #    break
+        for key, value in self.frames_info_dict.items():
+            print("0000", key)
+            print("1111", value)
+            break
 
     @classmethod
     def __load_image_url(cls, image_url: str):
@@ -272,37 +325,6 @@ class DeepVideoIndex(object):
                 try_time += 1
         raise Exception("access bfs error time > 3")
 
-    @my_async_decorator
-    def __frame_cls(self, image_url: str = None, model_type=None, image_list=None):
-        """ 调用模型服务，对帧分类
-        暂时没法直接用分帧的数据直接预测，因为bfs的文件名是不确定的，且上传文件是一个异步任务，没法一一对应起来，
-        后续自定义上传文件名，可以一边上传一边预测，可节省一半的时间
-        :return:
-        """
-        if model_type == ModelType.STARTAPP:
-            model_server_url = self.__start_app_server_url
-        elif model_type == ModelType.FIRSTFRAME:
-            model_server_url = self.__first_frame_server_url
-        elif model_type == ModelType.BLURREDSCREEN:
-            model_server_url = self.__blurred_screen_server_url
-        elif model_type == ModelType.FREEZESREEN:
-            model_server_url = self.__freeze_screen_server_url
-        elif model_type == ModelType.BLACKSCREEN:
-            model_server_url = self.__black_screen_server_url
-        else:
-            raise Exception("model type is wrong or not supported")
-
-        headers = {"content-type": "application/json"}
-        if image_list:
-            body = {"instances": [{"input_1": image_list}]}
-        else:
-            body = {"instances": [{"input_1": self.__load_image_url(image_url=image_url)}]}
-
-        response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
-        response.raise_for_status()
-        prediction = response.json()['predictions'][0]
-        return {image_url: np.argmax(prediction)}
-
     def __video_predict(self, model_type: ModelType):
         """ 将视频分帧，上传到bfs，再对所有的帧进行分类,
         调用self.__frame_cls 是异步任务，所以第二个for循环是用于获取结果
@@ -314,7 +336,7 @@ class DeepVideoIndex(object):
             cls_result_async = self.__frame_cls(frame_data_url, model_type)
             async_tasks.append(cls_result_async)
 
-        for async_task in as_completed(async_tasks):
+        for async_task in as_completed(async_tasks, timeout=10):
             cls_result = async_task.result()
             cls_result_list.append(cls_result)
             # del async_tasks[async_task]
@@ -325,11 +347,9 @@ class DeepVideoIndex(object):
         """ 播放器首帧时间
         :return:
         """
-        self.__cut_frame_upload()  # 分帧上传帧到bfs，避免本地压力
-        predict_result_list = self.__video_predict(ModelType.FIRSTFRAME)  # 拉取图片预测
+        self.__cut_frame_upload_predict(ModelType.FIRSTFRAME)  # 分帧预测并上传帧到bfs，避免本地压力
         first_frame_handler = FirstFrameTimer(frame_info_dict=self.frames_info_dict)
-        first_frame_time, cls_results_dict = first_frame_handler. \
-            get_first_frame_time(predict_result_list=predict_result_list)
+        first_frame_time, cls_results_dict = first_frame_handler.get_first_frame_time()
 
         return first_frame_time, cls_results_dict
 
