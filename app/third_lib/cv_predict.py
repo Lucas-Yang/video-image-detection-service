@@ -19,7 +19,7 @@ from enum import Enum
 from functools import wraps
 from app.factory import LogManager, MyThread
 
-thread_executor = ThreadPoolExecutor(max_workers=200)
+thread_executor = ThreadPoolExecutor(max_workers=100)
 
 
 def my_async_decorator(f):
@@ -202,7 +202,7 @@ class DeepVideoIndex(object):
         per_frame_time = 1 / fps
         return total_frame, fps, per_frame_time
 
-    @my_async_decorator
+    # @my_async_decorator
     def __upload_frame(self, frame_data):
         """ 上传分帧数据到bfs
         :param frame_data:
@@ -222,8 +222,8 @@ class DeepVideoIndex(object):
         raise Exception("access bfs error time > 3")
 
     @my_async_decorator
-    def __frame_cls(self, frame_list=None, model_type=None):
-        """ 调用模型服务，对帧分类
+    def __upload_frame_and_cls(self, frame_list=None, frame_data=None, model_type=None):
+        """ 上传分帧图片，并调用模型服务，对帧分类
         虽然是异步任务，但是可以把名字一一对应起来,前提是不使用as_completed，
         后续可以把upload_frame任务和frame_cls任务合并成一个异步任务
         :return:
@@ -240,6 +240,7 @@ class DeepVideoIndex(object):
             model_server_url = self.__black_screen_server_url
         else:
             raise Exception("model type is wrong or not supported")
+        frame_url = self.__upload_frame(frame_data)
 
         headers = {"content-type": "application/json"}
         body = {"instances": [{"input_1": frame_list}]}
@@ -248,7 +249,7 @@ class DeepVideoIndex(object):
         response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
         response.raise_for_status()
         prediction = response.json()['predictions'][0]
-        return np.argmax(prediction)
+        return np.argmax(prediction), frame_url
 
     def __cut_frame_upload_predict(self, model_type=None):
         """ 基于opencv的切割图片并上传bfs, 每秒保存10帧，对于人的视觉来看足够
@@ -256,48 +257,41 @@ class DeepVideoIndex(object):
         """
         total_frame, fps, per_frame_time = self.__get_video_info()
         cap = cv2.VideoCapture(self.video_info.get("temp_video_path"))
-        success, image = cap.read()
+        _, _ = cap.read()
         os.remove(self.video_info.get("temp_video_path"))  # 删除临时视频文件
         count = 0
         success = True
-        upload_async_tasks = []
-        predict_async_tasks = []
+        predict_async_tasks = {}
         while success:
             count += 1
-            if count % (fps // 10) == 0:
+            if count % (fps // 5) == 0:
                 success, image = cap.read()
                 ret, buf = cv2.imencode(".png", image)
                 frame_byte = Image.fromarray(np.uint8(buf)).tobytes()
 
                 frame_list = (image / 255).tolist()
                 try:
-                    predict_async_task = self.__frame_cls(frame_list, model_type)
-                    predict_async_tasks.append(predict_async_task)
+                    predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
+                    predict_async_tasks[predict_async_task] = count * per_frame_time
                 except Exception as err:
                     self.__logger.error(err)
 
-                try:
-                    frame_async_task = self.__upload_frame(frame_byte)
-                    upload_async_tasks.append([frame_async_task, count * per_frame_time])
-                except Exception as err:
-                    self.__logger.error(err)
                 # 实验
-                if count > 20:
+                if count > 50:
                     break
             else:
                 success, image = cap.read()
                 continue
-
-        for upload_async_task, predict_async_task in zip(upload_async_tasks, predict_async_tasks):
+        print(111111)
+        for predict_async_task in as_completed(predict_async_tasks):
+            time_step = predict_async_tasks[predict_async_task]
             try:
-                frame_name = upload_async_task[0].result(timeout=20)
+                predict_result, frame_name = predict_async_task.result(timeout=20)
                 print(frame_name)
-                predict_result = predict_async_task.result(timeout=20)
-                print(predict_result)
-            except TimeoutError as err:
+            except Exception as err:
                 self.__logger.error(err)
                 continue
-            self.frames_info_dict[frame_name] = [upload_async_task[1], predict_result]
+            self.frames_info_dict[frame_name] = [time_step, predict_result]
 
         # 实验
         for key, value in self.frames_info_dict.items():
