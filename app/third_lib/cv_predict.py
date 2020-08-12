@@ -2,7 +2,7 @@
 模型预测封装类
 通过调用该类获取视频播放质量指标
 """
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 import cv2
 import json
@@ -10,6 +10,8 @@ import os
 import requests
 import numpy as np
 import queue
+import sys
+import time
 
 from collections import OrderedDict
 from PIL import Image
@@ -19,7 +21,7 @@ from enum import Enum
 from functools import wraps
 from app.factory import LogManager, MyThread
 
-thread_executor = ThreadPoolExecutor(max_workers=100)
+thread_executor = ThreadPoolExecutor(max_workers=20)
 
 
 def my_async_decorator(f):
@@ -183,8 +185,8 @@ class DeepVideoIndex(object):
         self.frames_info_dict = {}
         self.__logger = LogManager("server.log").logger
 
-        self.__first_frame_server_url = "http://172.16.60.71:8501/v1/models/first_frame_model:predict"
-        self.__start_app_server_url = "http://172.16.60.71:8501/v1/models/start_app_model:predict"
+        self.__first_frame_server_url = "http://10.217.16.154:8501/v1/models/first_frame_model:predict"
+        self.__start_app_server_url = "http://10.217.16.154:8501/v1/models/start_app_model:predict"
         self.__blurred_screen_server_url = ""
         self.__black_screen_server_url = ""
         self.__freeze_screen_server_url = ""
@@ -228,6 +230,7 @@ class DeepVideoIndex(object):
         后续可以把upload_frame任务和frame_cls任务合并成一个异步任务
         :return:
         """
+        # print("idid1: ", id(frame_list))
         if model_type == ModelType.STARTAPP:
             model_server_url = self.__start_app_server_url
         elif model_type == ModelType.FIRSTFRAME:
@@ -249,6 +252,8 @@ class DeepVideoIndex(object):
         response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
         response.raise_for_status()
         prediction = response.json()['predictions'][0]
+        del frame_list
+        del frame_data
         return np.argmax(prediction), frame_url
 
     def __cut_frame_upload_predict(self, model_type=None):
@@ -270,34 +275,34 @@ class DeepVideoIndex(object):
                 frame_byte = Image.fromarray(np.uint8(buf)).tobytes()
 
                 frame_list = (image / 255).tolist()
+                print("idid: {}".format(id(frame_list)))
                 try:
                     predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
                     predict_async_tasks[predict_async_task] = count * per_frame_time
                 except Exception as err:
                     self.__logger.error(err)
-
                 # 实验
-                if count > 50:
-                    break
+                #if count > 20:
+                #     break
             else:
                 success, image = cap.read()
                 continue
-        print(111111)
+
         for predict_async_task in as_completed(predict_async_tasks):
             time_step = predict_async_tasks[predict_async_task]
             try:
                 predict_result, frame_name = predict_async_task.result(timeout=20)
-                print(frame_name)
+                # print(frame_name)
             except Exception as err:
                 self.__logger.error(err)
                 continue
             self.frames_info_dict[frame_name] = [time_step, predict_result]
 
         # 实验
-        for key, value in self.frames_info_dict.items():
-            print("0000", key)
-            print("1111", value)
-            break
+        # for key, value in self.frames_info_dict.items():
+        #    print("0000", key)
+        #    print("1111", value)
+        #    break
 
     @classmethod
     def __load_image_url(cls, image_url: str):
