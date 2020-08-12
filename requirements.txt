@@ -1,7 +1,8 @@
+gunicorn
 stagesepx
 werkzeug
-numpy
-PIL
+numpy==1.19.1
+Pillow
 requests
 pymongo
 jsonschema

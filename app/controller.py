@@ -1,3 +1,6 @@
+# /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 播放器指标路由
 """
