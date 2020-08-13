@@ -9,17 +9,21 @@
 | 打点数据 | 首帧时间  |
 |      | 卡顿时间  |
 |      | 丢帧率   |
+|      | 音视频帧差异 |
 |      | 视频基础数据 |
-|      | ijk进程占用系统资源 |
+|      | ijk进程CPU占用 |
+|      | ijk进程内存占用|
 | cv计算 | 首帧时间  |
 |      | 卡顿率   |
+|      | 花屏率|
+|      |黑屏率|
 |      | 播放异常率 |
 
 ## 二 服务接口
 ### 1 打点数据获取
 - 接口描述: 该接口用于获取打点指标, 实时返回
 - Method: ** POST **
-- URL: /v1/index/dot
+- URL: /player/index/dot
 - Header:
 - Body: 
 ```json5
@@ -27,6 +31,8 @@
   "uid": "xxxx", // 用户id
   "bvid": "xxxx", // 设备id
   "video_id": "xxxx" // 播放视频id
+  "video_start_time": "xxxxx" // 开始播放视频时间
+  "video_end_time": "xxxx" // 结束播放时间
 }
 ```
 
