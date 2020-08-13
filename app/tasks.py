@@ -9,8 +9,8 @@ import traceback
 
 logger = LogManager('server.log').logger
 
-brokers = 'redis://127.0.0.1:6379/7'
-backend = 'redis://127.0.0.1:6379/8'
+brokers = 'redis://172.22.33.211:6379/5'
+backend = 'redis://172.22.33.211:6379/6'
 
 celery_app = Celery('player-tasks', broker=brokers, backend=backend)
 
