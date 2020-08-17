@@ -28,9 +28,8 @@
 - Body: 
 ```json5
 {
-  "uid": "xxxx", // 用户id
-  "bvid": "xxxx", // 设备id
-  "video_id": "xxxx" // 播放视频id
+  "buvid": "xxxx", // 用户id
+  "device_id": "xxxxx" // 设备ID
   "video_start_time": "xxxxx" // 开始播放视频时间
   "video_end_time": "xxxx" // 结束播放时间
 }
@@ -43,18 +42,30 @@
    "code": 0,
    "message": "Success",
    "index": {
-            "video_duration": "", // 视频总时长 
-            "audio_duration": "", // 音频总时长
-            "video_bitrate": "", // 视频码率
-            "audio_bitrate": "", // 音频码率
-            "first_video_time": "", // 视频首帧时间(包括渲染)
-            "first_audio_time": "", // 音频首帧时间
-            "freeze_rate": "", // 丢帧率
-            "asset_update_count": "", // 资源刷新次数
-            "audio_pts_diff_time": "", // 音频播放偏差 
-            "ijk_cpu_rate": "", // ijk进程cpu占有率
-            "ijk_mem": "" //ijk进程内存占用
-        }
+        "video_base_info":{  // 视频基础信息
+            "video_duration":"91463", // 视频总时长
+            "audio_duration":"91463", // 音频总时长
+            "video_bitrate":"244017", // 视频码率，音频码率
+            "audio_bitrate":"67269" // 音频码率
+        },
+        "exit_error_info":{  // 视频播放item退出时候信息采集
+            "last_audio_net_error_code":"-1005", // 最后一次音频网络错误， -1005表示正常
+            "last_video_net_error_code":"-1005", // 最后一次视频网络错误
+            "exit_player_status":"3" // 退出时候播放器状态，PLAYER_IDLE = 0, PLAYER_PREPAREING = 1, 
+                                     // PLAYER_SWITCH_ITEM = 2, PLAYER_PLAY =3, PLAYER_PAUSE = 4, 
+                                     // PLAYER_BUFFERING = 5, PLAYER_ERROR = 6， PLAYER_COMPLETE = 7
+        },
+        "first_video_time":"312", // 视频首帧时间
+        "first_audio_time":"312", // 音频首帧时间
+        "frame_loss_rate":"0.0",  // 丢帧率
+        "freeze_times":"0",       // 卡顿加载次数(不包含seek)
+        "freeze_rate":0.0277637440867129, // 卡顿加载率(包含seek后的)
+        "buffering_total_time":1209,     // 加载总时长
+        "asset_update_count":"0",        // 
+        "audio_pts_diff_time":"0",       // 音频pts跟实际播放的偏差
+        "ijk_cpu_rate":"15",             // ijk进程 cpu占用率
+        "ijk_mem":"0"                    // ijk进程 内存占用率
+    }
 }
 ```
 ### 2 CV方式获取

@@ -25,12 +25,18 @@ def get_dot_index():
     input_data = request.data.decode('utf-8')
     if format_handler.player_index_dot_check(input_data):
         input_json = json.loads(input_data)
-        result_json = model_handler.get_dot_index(input_json)
-        return Response(json.dumps({
-            "code": 0,
-            "message": "Success",
-            "index": result_json
-        }), content_type='application/json')
+        success_flag, result_json = model_handler.get_dot_index(input_json)
+        if success_flag:
+            return Response(json.dumps({
+                "code": 0,
+                "message": "Success",
+                "index": result_json
+            }), content_type='application/json')
+        else:
+            return Response(json.dumps({
+                "code": -2,
+                "message": "calculate index error, plz check log",
+            }), content_type='application/json')
     else:
         return Response(json.dumps({
             "code": -1,

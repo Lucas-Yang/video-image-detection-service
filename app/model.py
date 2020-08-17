@@ -35,9 +35,15 @@ class PlayerIndex(object):
         :return:
         """
         dot_index_handler = DotVideoIndex(self.dot_info_dict)
-        dot_video_info_dict = dot_index_handler.get_total_index()
-        self.__write_db(dot_video_info_dict)
-        return dot_video_info_dict
+        success_flag = True
+        dot_video_info_dict = {}
+        try:
+            dot_video_info_dict = dot_index_handler.get_total_index()
+        except Exception as error:
+            self.__logger.error(error)
+            success_flag = False
+        # self.__write_db(dot_video_info_dict)
+        return success_flag, dot_video_info_dict
 
     def get_cv_index(self):
         """获取视频计算数据

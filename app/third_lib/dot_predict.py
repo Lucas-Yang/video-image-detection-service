@@ -4,7 +4,6 @@
 """
 import json
 import requests
-from app.factory import MyMongoClient
 from app.factory import LogManager
 
 
@@ -54,6 +53,8 @@ class DotVideoIndex(object):
         """
         es_url = "http://172.22.33.113:80/billions-datacenter.buryingpoint.buryingpoint-@*/_search"
         payload = {
+            "from": 0,
+            "size": 1000,
             "query": {
                 "bool": {
                     "filter": [
@@ -113,7 +114,7 @@ class DotVideoIndex(object):
                     player_event_dict[event_name].append(event_info_json)
                 else:
                     player_event_dict[event_name] = [event_info_json]
-        print(player_event_dict)
+        print(json.dumps(player_event_dict))
         return player_event_dict
 
     def get_video_info(self):
@@ -143,7 +144,7 @@ class DotVideoIndex(object):
         else:
             return None, None
 
-    def get_freeze_rate(self):
+    def get_frame_loss_rate(self):
         """获取丢帧率
         :return:
         """
@@ -151,6 +152,32 @@ class DotVideoIndex(object):
         if asset_item_stop_info:
             freeze_rate = asset_item_stop_info[0].get("vdrop_rate", "")
             return freeze_rate
+        else:
+            return None
+
+    def get_freeze_times(self):
+        """获取卡顿次数
+        :return:
+        """
+        asset_item_stop_info = self.event_dict.get("main.ijk.asset_item_stop.tracker")
+        if asset_item_stop_info:
+            freeze_times = asset_item_stop_info[0].get("buffering_count", "")
+            return freeze_times
+        else:
+            return None
+
+    def get_freeze_rate(self):
+        """获取卡顿率，buffering时间 / 总播放时间
+        :return:
+        """
+        asset_item_stop_info = self.event_dict.get("main.ijk.asset_item_stop.tracker")
+        if asset_item_stop_info:
+            buffering_time = self.get_buffering_total_time()
+            asset_item_time_of_session = float(asset_item_stop_info[0].get("asset_item_time_of_session", 0))
+            if asset_item_time_of_session == 0.0:
+                raise Exception("get freeze rate error, asset session time is 0")
+            else:
+                return buffering_time / asset_item_time_of_session
         else:
             return None
 
@@ -176,6 +203,19 @@ class DotVideoIndex(object):
         else:
             return None
 
+    def get_buffering_total_time(self):
+        """获取缓冲耗时
+        :return:
+        """
+        asset_item_buffering_end_info_list = self.event_dict.get("main.ijk.buffering_end.tracker")
+        if asset_item_buffering_end_info_list:
+            total_time = 0
+            for event_info in asset_item_buffering_end_info_list:
+                total_time += float(event_info.get("time_of_event"))
+            return total_time
+        else:
+            return None
+
     def get_ijk_cpu_mem_rate(self):
         """获取ijk进程cpu占用率, 内存占用率
         :return:
@@ -183,7 +223,7 @@ class DotVideoIndex(object):
         asset_item_stop_info = self.event_dict.get("main.ijk.asset_item_stop.tracker")
         if asset_item_stop_info:
             ijk_cpu_rate = asset_item_stop_info[0].get("ijk_cpu_rate", "")
-            ijk_mem = asset_item_stop_info.get("ijk_mem", "")
+            ijk_mem = asset_item_stop_info[0].get("ijk_mem", "")
             return ijk_cpu_rate, ijk_mem
         else:
             return None, None
@@ -194,11 +234,18 @@ class DotVideoIndex(object):
         """
         return
 
-    def get_error_rate(self):
+    def get_error(self):
         """
         :return:
         """
-        return
+        asset_item_stop_info = self.event_dict.get("main.ijk.asset_item_stop.tracker")
+        if asset_item_stop_info:
+            last_video_net_error = asset_item_stop_info[0].get("last_video_net_error", "")
+            last_audio_net_error = asset_item_stop_info[0].get("last_audio_net_error", "")
+            exit_player_status = asset_item_stop_info[0].get("player_status", "")
+            return last_audio_net_error, last_video_net_error, exit_player_status
+        else:
+            return None, None, None
 
     def get_total_index(self):
         """所有指标获取
@@ -206,18 +253,32 @@ class DotVideoIndex(object):
         """
         video_duration, audio_duration, video_bitrate, audio_bitrate = self.get_video_info()
         first_video_time, first_audio_time = self.get_first_av_time()
+        frame_loss_rate = self.get_frame_loss_rate()
+        freeze_times = self.get_freeze_times()
         freeze_rate = self.get_freeze_rate()
         asset_update_count = self.get_asset_update_count()
         audio_pts_diff_time = self.get_audio_pts_diff()
         ijk_cpu_rate, ijk_mem = self.get_ijk_cpu_mem_rate()
+        buffering_total_time = self.get_buffering_total_time()
+        audio_error_code, video_error_code, exit_player_status = self.get_error()
+
         return {
-            "video_duration": video_duration,
-            "audio_duration": audio_duration,
-            "video_bitrate": video_bitrate,
-            "audio_bitrate": audio_bitrate,
+            "video_base_info": {"video_duration": video_duration,
+                                "audio_duration": audio_duration,
+                                "video_bitrate": video_bitrate,
+                                "audio_bitrate": audio_bitrate
+                                },
+            "exit_error_info": {
+                "last_audio_net_error_code": audio_error_code,
+                "last_video_net_error_code": video_error_code,
+                "exit_player_status": exit_player_status
+            },
             "first_video_time": first_video_time,
             "first_audio_time": first_video_time,
+            "frame_loss_rate": frame_loss_rate,
+            "freeze_times": freeze_times,
             "freeze_rate": freeze_rate,
+            "buffering_total_time": buffering_total_time,
             "asset_update_count": asset_update_count,
             "audio_pts_diff_time": audio_pts_diff_time,
             "ijk_cpu_rate": ijk_cpu_rate,
@@ -228,8 +289,8 @@ class DotVideoIndex(object):
 if __name__ == '__main__':
     video_info = {"device_id": "awhuXmdXNVFlBGVTL1Mv",
                   "buvid": "XYC4F53C2D90023964D4CDF500BFA73C5BC19",
-                  "start_time": "1597392993054",
-                  "end_time": "1597395315925"
+                  "start_time": "1597656191475",
+                  "end_time": "1597656852622"
                   }
     dot_handler = DotVideoIndex(video_dict=video_info)
-    print(dot_handler.get_total_index())
+    print(json.dumps(dot_handler.get_total_index()))
