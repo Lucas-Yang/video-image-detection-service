@@ -106,23 +106,28 @@ class FormatChecker(object):
             "type": "object",
             "requiredv": True,
             "properties": {
-                "uid": {
-                    "type": "string",
-                    "minLength": 2
-                },
-                "did": {
+                "device_id": {
                     "type": "string",
                     "minlength": 2
                 },
-                "bvid": {
+                "buvid": {
+                    "type": "string",
+                    "minlength": 2
+                },
+                "start_time": {
+                    "type": "string",
+                    "minlength": 2
+                },
+                "end_time": {
                     "type": "string",
                     "minlength": 2
                 }
             },
             "required": [
-                "uid",
-                "did",
-                "bvid"
+                "device_id",
+                "buvid",
+                "start_time",
+                "end_time"
             ]
         }
         try:
