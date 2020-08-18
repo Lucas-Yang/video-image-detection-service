@@ -138,11 +138,17 @@ print(response.text.encode('utf8'))
 
 ## 四 其他说明
 不足与改进：
-- 视频帧太多，不需要每一帧都输出，可以适当删除一些帧
-- 分帧效率太低，一边分帧一边预测
-- 预测服务效率低，调研tensorflow serving的效率
+- 视频帧太多，不需要每一帧都输出，可以适当删除一些帧(解决)
+- 分帧效率太低，一边分帧一边预测(解决)
+- 预测服务效率低，调研tensorflow serving的效率(解决)
+- 黑屏，花屏，卡顿预测暂时没有上线
 
-依赖文档
+docker打包：
+- docker build  -t player-index-server:2.0 . --force-rm=true --rm=true
+- docker tag player-index-server:2.0 hub.bilibili.co/luoyadong/player-index-server:2.0
+- docker push hub.bilibili.co/luoyadong/player-index-server:2.0
+
+依赖文档：
 - https://kkroening.github.io/ffmpeg-python/
 
 
