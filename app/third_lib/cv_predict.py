@@ -107,15 +107,14 @@ class FirstFrameTimer(object):
 
         self._reformat_result()
         self._sort_reformat_result()
-        # print("排序结果: ", self._cls_dict)
         # 正常逻辑，每个阶段都正常识别
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
-            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])) - \
-                                    float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0]))
+            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[0]) - \
+                                    float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0])[0])
         # 当播放完成阶段没有时候，返回-1,给上层判断
         elif len(self._cls_dict.get(1, [])) and len(self._cls_dict.get(2, [])):
-            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])) - \
-                                    float(self.frame_info_dict.get(self._cls_dict.get(1)[0][0]))
+            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[0]) - \
+                                    float(self.frame_info_dict.get(self._cls_dict.get(1)[0][0])[0])
         else:
             self.first_frame_time = -1
 
@@ -127,7 +126,7 @@ class StartAppTimer(FirstFrameTimer):
     """ 启动时间计算类
     """
 
-    def __init__(self):
+    def __init__(self, start_app_dict=None):
         self.stage_name_list = ["阶段0：app打开", "阶段1：app推荐页加载", "阶段2：app正确启动页面", "阶段3：其他无关页面"]
         super.__init__()
 
@@ -230,7 +229,6 @@ class DeepVideoIndex(object):
         后续可以把upload_frame任务和frame_cls任务合并成一个异步任务
         :return:
         """
-        # print("idid1: ", id(frame_list))
         if model_type == ModelType.STARTAPP:
             model_server_url = self.__start_app_server_url
         elif model_type == ModelType.FIRSTFRAME:
@@ -247,13 +245,12 @@ class DeepVideoIndex(object):
 
         headers = {"content-type": "application/json"}
         body = {"instances": [{"input_1": frame_list}]}
-        # body = {"instances": [{"input_1": self.__load_image_url(image_url=image_url)}]}
-
         response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
         response.raise_for_status()
         prediction = response.json()['predictions'][0]
         del frame_list
         del frame_data
+        # print("{}, {}".format(str(np.argmax(prediction)), frame_url))
         return np.argmax(prediction), frame_url
 
     def __cut_frame_upload_predict(self, model_type=None):
@@ -272,17 +269,19 @@ class DeepVideoIndex(object):
             if count % (fps // 5) == 0:
                 success, image = cap.read()
                 ret, buf = cv2.imencode(".png", image)
-                frame_byte = Image.fromarray(np.uint8(buf)).tobytes()
+                frame_byte = Image.fromarray(np.uint8(buf)).tobytes()  # 上传bfs数据格式
 
-                frame_list = (image / 255).tolist()
-                print("idid: {}".format(id(frame_list)))
+                image = Image.fromarray(image)  # 先转格式为Image 为了统一输入图像尺寸
+                image = image.resize((90, 160), Image.NEAREST)
+                image = np.asarray(image)
+                frame_list = (image / 255).tolist()     # 模型预测数据格式
                 try:
                     predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
                     predict_async_tasks[predict_async_task] = count * per_frame_time
                 except Exception as err:
                     self.__logger.error(err)
                 # 实验
-                #if count > 20:
+                # if count > 10:
                 #     break
             else:
                 success, image = cap.read()
@@ -292,17 +291,10 @@ class DeepVideoIndex(object):
             time_step = predict_async_tasks[predict_async_task]
             try:
                 predict_result, frame_name = predict_async_task.result(timeout=20)
-                # print(frame_name)
             except Exception as err:
                 self.__logger.error(err)
                 continue
             self.frames_info_dict[frame_name] = [time_step, predict_result]
-
-        # 实验
-        # for key, value in self.frames_info_dict.items():
-        #    print("0000", key)
-        #    print("1111", value)
-        #    break
 
     @classmethod
     def __load_image_url(cls, image_url: str):
@@ -324,29 +316,12 @@ class DeepVideoIndex(object):
                 try_time += 1
         raise Exception("access bfs error time > 3")
 
-    def __video_predict(self, model_type: ModelType):
-        """ 将视频分帧，上传到bfs，再对所有的帧进行分类,
-        调用self.__frame_cls 是异步任务，所以第二个for循环是用于获取结果
-        :return: 所有帧的分类结果 [{cls: image_url}]
-        """
-        cls_result_list = []
-        async_tasks = []
-        for frame_data_url, _ in self.frames_info_dict.items():
-            cls_result_async = self.__frame_cls(frame_data_url, model_type)
-            async_tasks.append(cls_result_async)
-
-        for async_task in as_completed(async_tasks, timeout=10):
-            cls_result = async_task.result()
-            cls_result_list.append(cls_result)
-            # del async_tasks[async_task]
-        # print("1111", cls_result_list[0])
-        return cls_result_list
-
     def get_first_video_time(self):
         """ 播放器首帧时间
         :return:
         """
         self.__cut_frame_upload_predict(ModelType.FIRSTFRAME)  # 分帧预测并上传帧到bfs，避免本地压力
+        # print(self.frames_info_dict)
         first_frame_handler = FirstFrameTimer(frame_info_dict=self.frames_info_dict)
         first_frame_time, cls_results_dict = first_frame_handler.get_first_frame_time()
 
@@ -389,7 +364,7 @@ class DeepVideoIndex(object):
         """ app启动时间耗时
         :return:
         """
-        start_app_handler = StartAppTimer()
-        start_app_time, cls_results_dict = start_app_handler. \
-            get_first_frame_time(self.__video_predict(ModelType.STARTAPP))
+        self.__cut_frame_upload_predict(ModelType.STARTAPP)
+        start_app_handler = StartAppTimer(start_app_dict=self.frames_info_dict)
+        start_app_time, cls_results_dict = start_app_handler.get_first_frame_time()
         return start_app_time, cls_results_dict

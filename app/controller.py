@@ -21,11 +21,11 @@ logger = LogManager("server.log").logger
 
 @player_app.route('/index/dot', methods=['POST'])
 def get_dot_index():
-    model_handler = PlayerIndex()
     input_data = request.data.decode('utf-8')
     if format_handler.player_index_dot_check(input_data):
         input_json = json.loads(input_data)
-        success_flag, result_json = model_handler.get_dot_index(input_json)
+        model_handler = PlayerIndex(dot_info_dict=input_json)
+        success_flag, result_json = model_handler.get_dot_index()
         if success_flag:
             return Response(json.dumps({
                 "code": 0,
@@ -76,7 +76,6 @@ def get_cv_index():
         elif res.status == "SUCCESS":
             if res.result[0]:
                 logger.info(res)
-                # return res.result[1]
                 return render_template('template_reporter.html', info=res.result[1])
             else:
                 return Response(json.dumps({
