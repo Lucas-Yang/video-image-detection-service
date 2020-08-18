@@ -268,12 +268,17 @@ class DeepVideoIndex(object):
             count += 1
             if count % (fps // 5) == 0:
                 success, image = cap.read()
-                ret, buf = cv2.imencode(".png", image)
+
+                image_col, image_row = image.shape[0], image.shape[1]
+                image = Image.fromarray(image)  # 先转格式为Image 为了统一输入图像尺寸
+
+                predict_image = image.resize((90, 160), Image.NEAREST)
+                upload_image = image.resize((int(image_row * 0.4), int(image_col * 0.4)), Image.NEAREST)
+
+                ret, buf = cv2.imencode(".png", np.asarray(upload_image))
                 frame_byte = Image.fromarray(np.uint8(buf)).tobytes()  # 上传bfs数据格式
 
-                image = Image.fromarray(image)  # 先转格式为Image 为了统一输入图像尺寸
-                image = image.resize((90, 160), Image.NEAREST)
-                image = np.asarray(image)
+                image = np.asarray(predict_image)
                 frame_list = (image / 255).tolist()     # 模型预测数据格式
                 try:
                     predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
