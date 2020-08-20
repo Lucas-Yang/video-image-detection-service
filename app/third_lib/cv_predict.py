@@ -7,7 +7,6 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_compl
 import cv2
 import ffmpeg
 import json
-import os
 import re
 import requests
 import queue
@@ -58,9 +57,9 @@ class ModelType(Enum):
     """
     FIRSTFRAME = 1  # 播放首帧
     STARTAPP = 2  # app启动时间
-    FREEZESREEN = 3  # 卡顿
-    BLURREDSCREEN = 4  # 花屏
-    BLACKSCREEN = 5  # 黑屏
+    FREEZEFRAME = 3  # 卡顿
+    BLURREDFRAME = 4  # 花屏
+    BLACKFRAME = 5  # 黑屏
 
 
 class FirstFrameTimer(object):
@@ -147,7 +146,7 @@ class PlayerFreezeScreenWatcher(object):
 
         temp_video_path = self.video_info_dict.get("temp_video_path", None)
         if temp_video_path:
-            stream = ffmpeg.input('/Users/luoyadong/Desktop/test1.mp4')
+            stream = ffmpeg.input(temp_video_path)
             stream = ffmpeg.filter_(stream, 'freezedetect', n=0.001, d=0.3)
             stream = ffmpeg.output(stream, 'pipe:', format='null')
             out, err = stream.run(quiet=True, capture_stdout=True)
@@ -219,7 +218,7 @@ class PlayerBlackScreenWatcher(object):
             out, err = (
                 ffmpeg
                     .input(temp_video_path)
-                    .filter('blackdetect', d=0.5, pic_th=0.8)
+                    .filter('blackdetect', d=0.5, pic_th=1)
                     .output('pipe:', format='null')
                     .run(quiet=True, capture_stdout=True)
             )
@@ -297,11 +296,11 @@ class DeepVideoIndex(object):
             model_server_url = self.__start_app_server_url
         elif model_type == ModelType.FIRSTFRAME:
             model_server_url = self.__first_frame_server_url
-        elif model_type == ModelType.BLURREDSCREEN:
+        elif model_type == ModelType.BLURREDFRAME:
             model_server_url = self.__blurred_screen_server_url
-        elif model_type == ModelType.FREEZESREEN:
+        elif model_type == ModelType.FREEZEFRAME:
             model_server_url = self.__freeze_screen_server_url
-        elif model_type == ModelType.BLACKSCREEN:
+        elif model_type == ModelType.BLACKSFRAME:
             model_server_url = self.__black_screen_server_url
         else:
             raise Exception("model type is wrong or not supported")
@@ -414,7 +413,7 @@ class DeepVideoIndex(object):
         """
         blurred_handler = PlayerBlurredScreenWatcher()
         blurred_screen_rate, cls_results_dict = blurred_handler. \
-            get_blurred_screen(self.__video_predict(ModelType.BLURREDSCREEN))
+            get_blurred_screen(self.__upload_frame_and_cls(ModelType.BLURREDFRAME))
         return blurred_screen_rate, cls_results_dict
 
     def get_black_frame_info(self):
@@ -443,3 +442,13 @@ class DeepVideoIndex(object):
         start_app_handler = StartAppTimer(start_app_dict=self.frames_info_dict)
         start_app_time, cls_results_dict = start_app_handler.get_first_frame_time()
         return start_app_time, cls_results_dict
+
+
+if __name__ == '__main__':
+    cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/test2.mp4'}
+    deep_index_handler = DeepVideoIndex(cv_info)
+    # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
+    freeze_frame_list = deep_index_handler.get_freeze_frame_info()
+    black_frame_list = deep_index_handler.get_black_frame_info()
+    print(freeze_frame_list)
+    print(black_frame_list)

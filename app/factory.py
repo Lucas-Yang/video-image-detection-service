@@ -95,7 +95,7 @@ class FormatChecker(object):
     """
 
     def __init__(self):
-        pass
+        self.__logger = LogManager("server.log").logger
 
     def player_index_dot_check(self, input_json):
         """ 打点指标获取接口 输入参数校验
@@ -134,7 +134,7 @@ class FormatChecker(object):
             input_json = json.loads(input_json)
             validate(input_json, json_schema)
         except BaseException as err:
-            self.logger.error(err)
+            self.__logger.error(err)
             return False
         return True
 
@@ -147,20 +147,25 @@ class FormatChecker(object):
             "type": "object",
             "requiredv": True,
             "properties": {
-                "video": {
-                    "type": "string",
-                    "minlength": 2
+                "index_types": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "items": {
+                        "type": "string",
+                        "enum": ["FIRSTFRAME", "STARTAPP", "BLACKFRAME", "BLURREDFRAME", "FREEZEFRAME"]
+                    }
                 }
             },
             "required": [
-                "video"
+                "index_types"
             ]
         }
         try:
             input_json = json.loads(input_json)
             validate(input_json, json_schema)
         except BaseException as err:
-            self.logger.error(err)
+            self.__logger.error(err)
             return False
         return True
 
@@ -223,4 +228,4 @@ class MyThread(threading.Thread):
 
 if __name__ == "__main__":
     handler = FormatChecker()
-    print(handler.fuzz_task_check("{\"type\": \"request-fuzz\"}"))
+    print(handler.player_index_cv_check("{\"index_types\": [\"BLACKFRAME\"]}"))

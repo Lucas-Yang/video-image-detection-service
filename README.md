@@ -89,7 +89,7 @@ import requests
 
 url = "http://0.0.0.0:2233/player/video/upload"
 
-payload = {}
+payload = {"index_types": ["FIRSTFRAME", "STARTAPP", "BLACKFRAME", "BLURREDFRAME", "FREEZEFRAME"]}
 files = [
   ('file', open('/xxx/xxx/screen.mp4','rb'))
 ]
@@ -104,12 +104,20 @@ print(response.text.encode('utf8'))
 ```
 - Response:
 - Body:
-```json
+```json5
+// 正常返回
 {
   "code": 0,
   "msg": "update successfully",
   "task_id": "xxxxx"
+},
+
+// 输入参数错误
+{
+ "code": -1,
+ "message": "input error"
 }
+
 ```
 
 #### 获取指标接口
