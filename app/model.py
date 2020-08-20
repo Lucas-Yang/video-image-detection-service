@@ -41,6 +41,7 @@ class PlayerIndex(object):
             dot_video_info_dict = dot_index_handler.get_total_index()
         except Exception as error:
             self.__logger.error(error)
+            self.__logger.exception(error)
             success_flag = False
         # self.__write_db(dot_video_info_dict)
         return success_flag, dot_video_info_dict
@@ -50,11 +51,14 @@ class PlayerIndex(object):
         :return:
         """
         deep_index_handler = DeepVideoIndex(self.cv_info_dict)
-        first_frame_time, cls_results_dict = deep_index_handler.get_first_video_time()
+        first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
+        freeze_frame_list = deep_index_handler.get_freeze_frame_info()
+        black_frame_list = deep_index_handler.get_black_frame_info()
         cv_index_result = {
             "image_dict": cls_results_dict,
             "first_frame_time": first_frame_time,
-            "stage": ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
+            "black_frame_list": black_frame_list,
+            "freeze_frame_list": freeze_frame_list
         }
         # self.__write_db()
         return cv_index_result

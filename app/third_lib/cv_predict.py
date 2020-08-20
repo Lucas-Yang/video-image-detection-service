@@ -5,15 +5,15 @@
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 import cv2
+import ffmpeg
 import json
 import os
+import re
 import requests
-import numpy as np
 import queue
-import sys
-import time
 
 from collections import OrderedDict
+import numpy as np
 from PIL import Image
 from io import BytesIO
 from enum import Enum
@@ -135,15 +135,56 @@ class PlayerFreezeScreenWatcher(object):
     """ 卡顿计算类
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, video_info: dict = None):
+        self.video_info_dict = video_info
+        self.__logger = LogManager("server.log").logger
 
-    def get_freeze(self, predict_result_list: list):
+    def get_freeze(self):
         """
-        :param predict_result_list:
         :return:
         """
-        return None, None
+        freeze_result_list = []
+
+        temp_video_path = self.video_info_dict.get("temp_video_path", None)
+        if temp_video_path:
+            stream = ffmpeg.input('/Users/luoyadong/Desktop/test1.mp4')
+            stream = ffmpeg.filter_(stream, 'freezedetect', n=0.001, d=0.3)
+            stream = ffmpeg.output(stream, 'pipe:', format='null')
+            out, err = stream.run(quiet=True, capture_stdout=True)
+            freeze_start_list = []
+            freeze_duration_list = []
+            freeze_end_list = []
+            for line_info in err.decode().strip().split('\n'):
+                if "[freezedetect" in line_info:
+                    try:
+                        if "freeze_start" in line_info:
+                            match_objects_start = re.match(".*freeze_start: (.*)", line_info, re.M | re.I)
+                            freeze_start_list.append(match_objects_start.group(1))
+                            # print("freeze_start", match_objects_start.group(1))
+                        elif "freeze_duration" in line_info:
+                            match_objects_duration = re.match(".*freeze_duration: (.*)", line_info, re.M | re.I)
+                            freeze_duration_list.append(match_objects_duration.group(1))
+                            # print("freeze_duration", match_objects_duration.group(1))
+                        elif "freeze_end" in line_info:
+                            match_objects_duration = re.match(".*freeze_end: (.*)", line_info, re.M | re.I)
+                            freeze_end_list.append(match_objects_duration.group(1))
+                            # print("freeze_end", match_objects_duration.group(1))
+                        else:
+                            continue
+                    except Exception as error:
+                        self.__logger.error(error)
+                        continue
+            for freeze_start, freeze_duration, freeze_end in zip(freeze_start_list, freeze_duration_list,
+                                                                 freeze_end_list):
+                freeze_result = {"freeze_start_time": freeze_start, "freeze_duration_time": freeze_duration,
+                                 "freeze_end_time": freeze_end}
+                freeze_result_list.append(freeze_result)
+            if len(freeze_start_list) > len(freeze_duration_list):
+                freeze_result_list.append({"freeze_start_time": freeze_start_list[-1],
+                                           "freeze_duration_time": "till-end",
+                                           "freeze_end_time": "end"
+                                           })
+        return freeze_result_list
 
 
 class PlayerBlurredScreenWatcher(object):
@@ -164,15 +205,39 @@ class PlayerBlackScreenWatcher(object):
     """ 黑屏计算类
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, video_info: dict = None):
+        self.video_info_dict = video_info
+        self.__logger = LogManager("server.log").logger
 
-    def get_black_screen(self, predict_result_list: list):
+    def get_black_screen(self):
         """
-        :param predict_result_list:
         :return:
         """
-        return None, None
+        black_result_list = []
+        temp_video_path = self.video_info_dict.get("temp_video_path", None)
+        if temp_video_path:
+            out, err = (
+                ffmpeg
+                    .input(temp_video_path)
+                    .filter('blackdetect', d=0.5, pic_th=0.8)
+                    .output('pipe:', format='null')
+                    .run(quiet=True, capture_stdout=True)
+            )
+            for i in err.decode().strip().split('\n'):
+                if "[blackdetect" in i:
+                    try:
+                        match_objects = re.match(".*black_start:(.*) black_end:(.*) black_duration:(.*)", i,
+                                                 re.M | re.I)
+                        black_frames_info = {
+                            "black_start": match_objects.group(1),
+                            "black_end": match_objects.group(2),
+                            "black_duration": match_objects.group(3)
+                        }
+                        black_result_list.append(black_frames_info)
+                    except Exception as err:
+                        self.__logger.error(err)
+                        continue
+        return black_result_list
 
 
 class DeepVideoIndex(object):
@@ -203,7 +268,6 @@ class DeepVideoIndex(object):
         per_frame_time = 1 / fps
         return total_frame, fps, per_frame_time
 
-    # @my_async_decorator
     def __upload_frame(self, frame_data):
         """ 上传分帧数据到bfs
         :param frame_data:
@@ -260,7 +324,7 @@ class DeepVideoIndex(object):
         total_frame, fps, per_frame_time = self.__get_video_info()
         cap = cv2.VideoCapture(self.video_info.get("temp_video_path"))
         _, _ = cap.read()
-        os.remove(self.video_info.get("temp_video_path"))  # 删除临时视频文件
+        # os.remove(self.video_info.get("temp_video_path"))  # 删除临时视频文件
         count = 0
         success = True
         predict_async_tasks = {}
@@ -279,7 +343,7 @@ class DeepVideoIndex(object):
                 frame_byte = Image.fromarray(np.uint8(buf)).tobytes()  # 上传bfs数据格式
 
                 image = np.asarray(predict_image)
-                frame_list = (image / 255).tolist()     # 模型预测数据格式
+                frame_list = (image / 255).tolist()  # 模型预测数据格式
                 try:
                     predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
                     predict_async_tasks[predict_async_task] = count * per_frame_time
@@ -321,7 +385,7 @@ class DeepVideoIndex(object):
                 try_time += 1
         raise Exception("access bfs error time > 3")
 
-    def get_first_video_time(self):
+    def get_first_frame_time(self):
         """ 播放器首帧时间
         :return:
         """
@@ -332,16 +396,19 @@ class DeepVideoIndex(object):
 
         return first_frame_time, cls_results_dict
 
-    def get_freeze_rate(self):
+    def get_freeze_frame_info(self):
         """
-        :return:
+        :return:[{"freeze_start_time": 0,
+                  "freeze_duration_time": 0,
+                  "freeze_end_time": 0}
+                ]
         """
-        freeze_handler = PlayerFreezeScreenWatcher()
-        freeze_rate, cls_results_dict = freeze_handler. \
-            get_freeze(self.__video_predict(ModelType.FREEZESREEN))
-        return freeze_rate, cls_results_dict
+        total_frame, fps, per_frame_time = self.__get_video_info()
+        freeze_handler = PlayerFreezeScreenWatcher(self.video_info)
+        freeze_result_list = freeze_handler.get_freeze()
+        return freeze_result_list
 
-    def get_blurred_screen_rate(self):
+    def get_blurred_frame_rate(self):
         """获取花屏率
         :return:
         """
@@ -350,14 +417,17 @@ class DeepVideoIndex(object):
             get_blurred_screen(self.__video_predict(ModelType.BLURREDSCREEN))
         return blurred_screen_rate, cls_results_dict
 
-    def get_black_screen_rate(self):
+    def get_black_frame_info(self):
         """
-        :return:
+        :return:[{
+               "black_start": 0,
+               "black_end": 0,
+               "black_duration": 0
+            }]
         """
-        black_handler = PlayerBlackScreenWatcher()
-        black_screen_rate, cls_results_dict = black_handler. \
-            get_black_screen(self.__video_predict(ModelType.BLACKSCREEN))
-        return black_screen_rate, cls_results_dict
+        black_handler = PlayerBlackScreenWatcher(self.video_info)
+        black_screen_list = black_handler.get_black_screen()
+        return black_screen_list
 
     def get_error_rate(self):
         """
