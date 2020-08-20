@@ -177,7 +177,7 @@ class DotVideoIndex(object):
             if asset_item_time_of_session == 0.0:
                 raise Exception("get freeze rate error, asset session time is 0")
             else:
-                return buffering_time / asset_item_time_of_session
+                return buffering_time / asset_item_time_of_session if buffering_time else 0
         else:
             return None
 

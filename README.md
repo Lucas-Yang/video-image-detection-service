@@ -102,7 +102,6 @@ response = requests.request("POST", url, headers=headers, data = payload, files 
 print(response.text.encode('utf8'))
 
 ```
-
 - Response:
 - Body:
 ```json
@@ -128,8 +127,8 @@ print(response.text.encode('utf8'))
 ```json5
 {
   "first_video_time": "",
-  "black_screen_rate": "",
-  "freeze_rate": "",
+  "black_frame_list": "",
+  "freeze_frame_list": "",
   "error_rate": ""
 }
 ```
