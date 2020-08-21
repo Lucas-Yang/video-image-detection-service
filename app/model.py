@@ -57,19 +57,18 @@ class PlayerIndex(object):
 
         deep_index_handler = DeepVideoIndex(self.cv_info_dict)
         for index_type in set(self.cv_info_dict.get("index_types")):
-            if index_type == ModelType.FIRSTFRAME:
+            if index_type == ModelType.FIRSTFRAME.name:
                 first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
-            elif index_type == ModelType.BLACKFRAME:
+            elif index_type == ModelType.BLACKFRAME.name:
                 black_frame_list = deep_index_handler.get_black_frame_info()
-            elif index_type == ModelType.FREEZEFRAME:
+            elif index_type == ModelType.FREEZEFRAME.name:
                 freeze_frame_list = deep_index_handler.get_freeze_frame_info()
-            elif index_type == ModelType.BLURREDFRAME:
+            elif index_type == ModelType.BLURREDFRAME.name:
                 pass
-            elif index_type == ModelType.STARTAPP:
+            elif index_type == ModelType.STARTAPP.name:
                 pass
             else:
                 pass
-
         cv_index_result = {
             "image_dict": cls_results_dict,
             "first_frame_time": first_frame_time,
@@ -78,3 +77,13 @@ class PlayerIndex(object):
         }
         # self.__write_db()
         return cv_index_result
+
+
+if __name__ == '__main__':
+    import json
+    cv_info_dict = {"temp_video_path": "/Users/luoyadong/PycharmProjects/PlayerIndex/result/screen.mp4",
+                    "index_types": ["FREEZEFRAME", "BLACKFRAME"]
+                    }
+    player_handler = PlayerIndex(cv_info_dict=cv_info_dict)
+    cv_index_result1 = player_handler.get_cv_index()
+    print(json.dumps(cv_index_result1, ensure_ascii=False))
