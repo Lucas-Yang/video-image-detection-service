@@ -53,7 +53,7 @@ def update_cv_data():
             os.mkdir(base_path)
         file_path = os.path.join(base_path, str(datetime.now()) + f.filename)
         f.save(file_path)  # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
-        r = cv_index_task.delay({"temp_video_path": file_path})
+        r = cv_index_task.delay({"temp_video_path": file_path, "index_types": request.json().get("index_types")})
         task_id = r.task_id
         return Response(json.dumps({
             "code": 0,

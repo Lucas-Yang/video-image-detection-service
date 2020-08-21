@@ -2,7 +2,7 @@
 dao层
 """
 from app.third_lib.dot_predict import DotVideoIndex
-from app.third_lib.cv_predict import DeepVideoIndex
+from app.third_lib.cv_predict import DeepVideoIndex, ModelType
 from app.factory import LogManager
 
 
@@ -50,10 +50,26 @@ class PlayerIndex(object):
         """获取视频计算数据
         :return:
         """
+        cls_results_dict = {"frame 分类": [[None, None]]}
+        first_frame_time = None
+        black_frame_list = []
+        freeze_frame_list = []
+
         deep_index_handler = DeepVideoIndex(self.cv_info_dict)
-        first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
-        freeze_frame_list = deep_index_handler.get_freeze_frame_info()
-        black_frame_list = deep_index_handler.get_black_frame_info()
+        for index_type in set(self.cv_info_dict.get("index_types")):
+            if index_type == ModelType.FIRSTFRAME:
+                first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
+            elif index_type == ModelType.BLACKFRAME:
+                black_frame_list = deep_index_handler.get_black_frame_info()
+            elif index_type == ModelType.FREEZEFRAME:
+                freeze_frame_list = deep_index_handler.get_freeze_frame_info()
+            elif index_type == ModelType.BLURREDFRAME:
+                pass
+            elif index_type == ModelType.STARTAPP:
+                pass
+            else:
+                pass
+
         cv_index_result = {
             "image_dict": cls_results_dict,
             "first_frame_time": first_frame_time,
