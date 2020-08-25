@@ -134,10 +134,34 @@ print(response.text.encode('utf8'))
 - Body:
 ```json5
 {
-  "first_video_time": "",
-  "black_frame_list": "",
-  "freeze_frame_list": "",
-  "error_rate": ""
+    "image_dict":{
+        "0":[
+            [
+                "http://uat-i0.hdslb.com/bfs/davinci/9a5e3cbf551e45dd3d6620f6bb5ab12999f41c64.png",
+                0.9565997217875153
+            ],
+            [
+                "http://uat-i0.hdslb.com/bfs/davinci/2375def7e5c03b65ff86cdb8c8a660f700790508.png",
+                1.1479196661450184
+            ]
+        ],
+        "1":Array[2],
+        "2":Array[55],
+        "3":Array[4]
+    },
+    "first_frame_time":1.0434002782124847,
+    "black_frame_list":Array[0],
+    "freeze_frame_list":[
+        Object{...},
+        Object{...},
+        Object{...},
+        Object{...},
+        {
+            "freeze_start_time":"3.02808",
+            "freeze_duration_time":"0.37",
+            "freeze_end_time":"3.39808"
+        }
+    ]
 }
 ```
 
