@@ -82,7 +82,7 @@ class PlayerIndex(object):
 if __name__ == '__main__':
     import json
     cv_info_dict = {"temp_video_path": "/Users/luoyadong/PycharmProjects/PlayerIndex/result/screen.mp4",
-                    "index_types": ["FREEZEFRAME", "BLACKFRAME"]
+                    "index_types": ["FREEZEFRAME", "BLACKFRAME", "FIRSTFRAME"]
                     }
     player_handler = PlayerIndex(cv_info_dict=cv_info_dict)
     cv_index_result1 = player_handler.get_cv_index()
