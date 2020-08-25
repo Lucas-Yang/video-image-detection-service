@@ -108,8 +108,13 @@ class FirstFrameTimer(object):
         self._sort_reformat_result()
         # 正常逻辑，每个阶段都正常识别
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
-            self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[0]) - \
-                                    float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0])[0])
+            start_frame_index = 0
+            while self.first_frame_time <= 0:
+                self.first_frame_time = float(
+                    self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[start_frame_index]) - \
+                                        float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0])[0])
+                start_frame_index += 1
+
         # 当播放完成阶段没有时候，返回-1,给上层判断
         elif len(self._cls_dict.get(1, [])) and len(self._cls_dict.get(2, [])):
             self.first_frame_time = float(self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[0]) - \
