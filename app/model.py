@@ -69,6 +69,16 @@ class PlayerIndex(object):
                 pass
             else:
                 pass
+
+        # 数据筛选，只判断播放阶段的卡顿与黑屏，删除播放前阶段的卡顿与黑屏数据
+        if first_frame_time:
+            freeze_frame_list = [freeze_frame_dict for freeze_frame_dict in freeze_frame_list
+                                 if float(freeze_frame_dict.get("freeze_start_time")) > first_frame_time
+                                 ]
+            black_frame_list = [black_frame_dict for black_frame_dict in black_frame_list
+                                if float(black_frame_dict.get("black_start") > first_frame_time)
+                                ]
+
         cv_index_result = {
             "image_dict": cls_results_dict,
             "first_frame_time": first_frame_time,
