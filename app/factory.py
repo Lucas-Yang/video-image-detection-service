@@ -138,9 +138,9 @@ class FormatChecker(object):
             return False
         return True
 
-    def player_index_cv_check(self, input_json):
+    def player_index_cv_check(self, request):
         """
-        :param input_json:
+        :param request:
         :return:
         """
         json_schema = {
@@ -162,8 +162,10 @@ class FormatChecker(object):
             ]
         }
         try:
-            input_json = json.loads(input_json)
+            input_json = {"index_types": request.form.getlist("index_types")}
             validate(input_json, json_schema)
+            if request.files['file'].filename.split('.')[-1] != "mp4":
+                raise Exception("input file is not mp4")
         except BaseException as err:
             self.__logger.error(err)
             return False

@@ -93,11 +93,8 @@ payload = {"index_types": ["FIRSTFRAME", "STARTAPP", "BLACKFRAME", "BLURREDFRAME
 files = [
   ('file', open('/xxx/xxx/screen.mp4','rb'))
 ]
-headers = {
-  "Content-Type": "multipart/form-data"
-}
 
-response = requests.request("POST", url, headers=headers, data = payload, files = files)
+response = requests.request("POST", url, data = payload, files = files)
 
 print(response.text.encode('utf8'))
 
