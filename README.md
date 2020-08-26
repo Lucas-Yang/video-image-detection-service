@@ -169,7 +169,7 @@ print(response.text.encode('utf8'))
 - 视频帧太多，不需要每一帧都输出，可以适当删除一些帧(解决)
 - 分帧效率太低，一边分帧一边预测(解决)
 - 预测服务效率低，调研tensorflow serving的效率(解决)
-- 黑屏，花屏，卡顿预测暂时没有上线
+- 黑屏，花屏，卡顿预测暂时没有上线(卡顿 黑屏以及上线)
 
 docker打包：
 - docker build  -t player-index-server:2.0 . --force-rm=true --rm=true
