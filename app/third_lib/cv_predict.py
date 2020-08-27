@@ -110,9 +110,11 @@ class FirstFrameTimer(object):
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
             start_frame_index = 0
             while self.first_frame_time <= 0:
-                self.first_frame_time = float(
-                    self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[start_frame_index]) - \
-                                        float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0])[0])
+                # self.first_frame_time = float(
+                #    self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[start_frame_index]) - \
+                #                         float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0])[0])
+                self.first_frame_time = float(self._cls_dict.get(2)[start_frame_index][1]) - \
+                                        float(self._cls_dict.get(0)[0][1])
                 start_frame_index += 1
 
         # 当播放完成阶段没有时候，返回-1,给上层判断
@@ -152,7 +154,7 @@ class PlayerFreezeScreenWatcher(object):
         temp_video_path = self.video_info_dict.get("temp_video_path", None)
         if temp_video_path:
             stream = ffmpeg.input(temp_video_path)
-            stream = ffmpeg.filter_(stream, 'freezedetect', n=0.001, d=0.3)
+            stream = ffmpeg.filter_(stream, 'freezedetect', n=0.0001, d=0.3)
             stream = ffmpeg.output(stream, 'pipe:', format='null')
             out, err = stream.run(quiet=True, capture_stdout=True)
             freeze_start_list = []
@@ -253,8 +255,8 @@ class DeepVideoIndex(object):
         self.frames_info_dict = {}
         self.__logger = LogManager("server.log").logger
 
-        self.__first_frame_server_url = "http://10.217.16.154:8501/v1/models/first_frame_model:predict"
-        self.__start_app_server_url = "http://10.217.16.154:8501/v1/models/start_app_model:predict"
+        self.__first_frame_server_url = "http://10.217.14.159:8501/v1/models/first_frame_model:predict"
+        self.__start_app_server_url = "http://10.217.14.159:8501/v1/models/start_app_model:predict"
         self.__blurred_screen_server_url = ""
         self.__black_screen_server_url = ""
         self.__freeze_screen_server_url = ""
@@ -322,7 +324,7 @@ class DeepVideoIndex(object):
         return np.argmax(prediction), frame_url
 
     def __cut_frame_upload_predict(self, model_type=None):
-        """ 基于opencv的切割图片并上传bfs, 每秒保存10帧，对于人的视觉来看足够
+        """ 基于opencv的切割图片并上传bfs, 每秒保存7帧，对于人的视觉来看足够
         :return:
         """
         total_frame, fps, per_frame_time = self.__get_video_info()
@@ -334,28 +336,30 @@ class DeepVideoIndex(object):
         predict_async_tasks = {}
         while success:
             count += 1
-            if count % (fps // 5) == 0:
+            if count % (fps // 8) == 0:
                 success, image = cap.read()
+                if success:
+                    image_col, image_row = image.shape[0], image.shape[1]
+                    image = Image.fromarray(image)  # 先转格式为Image 为了统一输入图像尺寸
 
-                image_col, image_row = image.shape[0], image.shape[1]
-                image = Image.fromarray(image)  # 先转格式为Image 为了统一输入图像尺寸
+                    predict_image = image.resize((90, 160), Image.NEAREST)
+                    upload_image = image.resize((int(image_row * 0.4), int(image_col * 0.4)), Image.NEAREST)
 
-                predict_image = image.resize((90, 160), Image.NEAREST)
-                upload_image = image.resize((int(image_row * 0.4), int(image_col * 0.4)), Image.NEAREST)
+                    ret, buf = cv2.imencode(".png", np.asarray(upload_image))
+                    frame_byte = Image.fromarray(np.uint8(buf)).tobytes()  # 上传bfs数据格式
 
-                ret, buf = cv2.imencode(".png", np.asarray(upload_image))
-                frame_byte = Image.fromarray(np.uint8(buf)).tobytes()  # 上传bfs数据格式
-
-                image = np.asarray(predict_image)
-                frame_list = (image / 255).tolist()  # 模型预测数据格式
-                try:
-                    predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
-                    predict_async_tasks[predict_async_task] = count * per_frame_time
-                except Exception as err:
-                    self.__logger.error(err)
-                # 实验
-                # if count > 10:
-                #     break
+                    image = np.asarray(predict_image)
+                    frame_list = (image / 255).tolist()  # 模型预测数据格式
+                    try:
+                        predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
+                        predict_async_tasks[predict_async_task] = count * per_frame_time
+                    except Exception as err:
+                        self.__logger.error(err)
+                    # 实验
+                    # if count > 10:
+                    #     break
+                else:
+                    continue
             else:
                 success, image = cap.read()
                 continue
