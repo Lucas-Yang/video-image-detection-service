@@ -46,7 +46,9 @@
             "video_duration":"91463", // 视频总时长
             "audio_duration":"91463", // 音频总时长
             "video_bitrate":"244017", // 视频码率，音频码率
-            "audio_bitrate":"67269" // 音频码率
+            "audio_bitrate":"67269", // 音频码率
+            "video_read_bytes": "xxxxx", //视频读取的总字节数  
+            "audio_read_bytes": "xxxxx" // 音频读取的总字节数
         },
         "exit_error_info":{  // 视频播放item退出时候信息采集
             "last_audio_net_error_code":"-1005", // 最后一次音频网络错误， -1005表示正常
