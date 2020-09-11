@@ -164,7 +164,8 @@ class FormatChecker(object):
         try:
             input_json = {"index_types": request.form.getlist("index_types")}
             validate(input_json, json_schema)
-            if request.files['file'].filename.split('.')[-1] != "mp4":
+            if request.files['file'].filename.split('.')[-1] != "mp4" and \
+                    request.files['file'].filename.split('.')[-1] != "MP4":
                 raise Exception("input file is not mp4")
         except BaseException as err:
             self.__logger.error(err)
