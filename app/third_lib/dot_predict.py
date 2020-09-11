@@ -216,6 +216,18 @@ class DotVideoIndex(object):
         else:
             return None
 
+    def get_video_read_bytes(self):
+        """获取音视频读取字节数
+        :return:
+        """
+        asset_item_stop_info = self.event_dict.get("main.ijk.asset_item_stop.tracker")
+        if asset_item_stop_info:
+            video_read_bytes = asset_item_stop_info[0].get("video_read_bytes", "")
+            audio_read_bytes = asset_item_stop_info[0].get("audio_read_bytes", "")
+            return video_read_bytes, audio_read_bytes
+        else:
+            return None, None
+
     def get_ijk_cpu_mem_rate(self):
         """获取ijk进程cpu占用率, 内存占用率
         :return:
@@ -256,6 +268,7 @@ class DotVideoIndex(object):
         frame_loss_rate = self.get_frame_loss_rate()
         freeze_times = self.get_freeze_times()
         freeze_rate = self.get_freeze_rate()
+        video_read_bytes, audio_read_bytes = self.get_video_read_bytes()
         asset_update_count = self.get_asset_update_count()
         audio_pts_diff_time = self.get_audio_pts_diff()
         ijk_cpu_rate, ijk_mem = self.get_ijk_cpu_mem_rate()
@@ -266,7 +279,9 @@ class DotVideoIndex(object):
             "video_base_info": {"video_duration": video_duration,
                                 "audio_duration": audio_duration,
                                 "video_bitrate": video_bitrate,
-                                "audio_bitrate": audio_bitrate
+                                "audio_bitrate": audio_bitrate,
+                                "video_read_bytes": video_read_bytes,
+                                "audio_read_bytes": audio_read_bytes
                                 },
             "exit_error_info": {
                 "last_audio_net_error_code": audio_error_code,
