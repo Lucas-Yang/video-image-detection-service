@@ -3,6 +3,7 @@ celery异步任务执行
 """
 import os
 from celery import Celery
+from ffmpy import FFmpeg
 from app.factory import LogManager
 from app.model import PlayerIndex
 import traceback
@@ -31,9 +32,20 @@ def cv_index_task(cv_info_dict):
     """
     task_success_flag = True
     try:
+        file_path = cv_info_dict.get("temp_video_path")
+        cfr_video_path = cv_info_dict.get("temp_video_path").split('.mp')[0] + "1.mp4"
+        ff = FFmpeg(
+            inputs={file_path: None},
+            outputs={
+                cfr_video_path: '-y -vf fps=32 -vsync cfr'
+            }
+        )
+        ff.run()
+        cv_info_dict["temp_video_path"] = cfr_video_path
         model_handler = PlayerIndex(cv_info_dict=cv_info_dict)
         cv_result_index = model_handler.get_cv_index()
         os.remove(cv_info_dict.get("temp_video_path"))  # 删除临时视频文件
+        os.remove(file_path)  # 删除临时固定帧率源视频
         logger.info(cv_result_index)
     except Exception as err:
         logger.error(err)

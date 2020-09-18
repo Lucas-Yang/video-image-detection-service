@@ -16,6 +16,6 @@ worker_connections = 2000
 pidfile = 'log/gunicorn.pid'
 # 设置访问日志和错误信息日志路径
 accesslog = 'log/gunicorn_acess.log'
-errorlog = 'log/gunicorn_error.log'
+# errorlog = 'log/gunicorn_error.log'
 # 设置日志记录水平
 loglevel = 'info'
