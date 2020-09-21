@@ -81,7 +81,11 @@ def get_cv_index():
         elif res.status == "SUCCESS":
             if res.result[0]:
                 logger.info(res)
-                return render_template('template_reporter.html', info=res.result[1])
+                return Response(json.dumps({
+                    "code": 0,
+                    "data": res.result[1],
+                    "message": "Success"}), content_type='application/json')
+                # return render_template('template_reporter.html', info=res.result[1])
             else:
                 return Response(json.dumps({
                     "code": -3,

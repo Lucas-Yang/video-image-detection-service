@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 8090
 # CMD ["cd", "/my_app"]
-CMD ["sh", "begin.sh"]
+CMD ["sh", "/my_app/begin.sh"]
