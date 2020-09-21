@@ -7,6 +7,8 @@ requests
 pymongo
 jsonschema
 opencv-python== 4.3.0.36
+ffmpy==0.2.3
+ffmpeg-python==0.2.0
 celery==4.4.6
 ConcurrentLogHandler==0.9.1
 Flask==1.1.2
