@@ -106,6 +106,7 @@ class FirstFrameTimer(object):
 
         self._reformat_result()
         self._sort_reformat_result()
+        start_frame_timestamp = 0  # 开始播放帧时间戳
         # 正常逻辑，每个阶段都正常识别
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
             start_frame_index = 0
@@ -116,6 +117,7 @@ class FirstFrameTimer(object):
                 self.first_frame_time = float(self._cls_dict.get(2)[start_frame_index][1]) - \
                                         float(self._cls_dict.get(0)[0][1])
                 start_frame_index += 1
+            start_frame_timestamp = self._cls_dict.get(2)[start_frame_index][1]
 
         # 当播放完成阶段没有时候，返回-1,给上层判断
         elif len(self._cls_dict.get(1, [])) and len(self._cls_dict.get(2, [])):
@@ -125,7 +127,7 @@ class FirstFrameTimer(object):
             self.first_frame_time = -1
 
         ordered_dict = OrderedDict(sorted(self._cls_dict.items(), key=lambda obj: obj[0]))
-        return self.first_frame_time, ordered_dict
+        return self.first_frame_time, ordered_dict, start_frame_timestamp
 
 
 class StartAppTimer(FirstFrameTimer):
@@ -400,9 +402,9 @@ class DeepVideoIndex(object):
         self.__cut_frame_upload_predict(ModelType.FIRSTFRAME)  # 分帧预测并上传帧到bfs，避免本地压力
         # print(self.frames_info_dict)
         first_frame_handler = FirstFrameTimer(frame_info_dict=self.frames_info_dict)
-        first_frame_time, cls_results_dict = first_frame_handler.get_first_frame_time()
+        first_frame_time, cls_results_dict, first_frame_timestamp = first_frame_handler.get_first_frame_time()
 
-        return first_frame_time, cls_results_dict
+        return first_frame_time, cls_results_dict, first_frame_timestamp
 
     def get_freeze_frame_info(self):
         """
@@ -449,7 +451,7 @@ class DeepVideoIndex(object):
         """
         self.__cut_frame_upload_predict(ModelType.STARTAPP)
         start_app_handler = StartAppTimer(start_app_dict=self.frames_info_dict)
-        start_app_time, cls_results_dict = start_app_handler.get_first_frame_time()
+        start_app_time, cls_results_dict, first_frame_timestamp = start_app_handler.get_first_frame_time()
         return start_app_time, cls_results_dict
 
 
