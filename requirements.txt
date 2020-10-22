@@ -1,7 +1,7 @@
 gunicorn
 stagesepx
 werkzeug
-numpy==1.19.1
+numpy
 Pillow
 requests
 pymongo
