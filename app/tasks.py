@@ -11,8 +11,8 @@ import traceback
 logger = LogManager('server.log').logger
 
 # plz double check redis database num
-brokers = 'redis://172.22.119.29:6379/3'
-backend = 'redis://172.22.119.29:6379/4'
+brokers = 'redis://172.22.119.29:6379/5'
+backend = 'redis://172.22.119.29:6379/6'
 #brokers = 'redis://0.0.0.0:6379/3'
 #backend = 'redis://0.0.0.0:6379/4'
 
@@ -34,6 +34,7 @@ def cv_index_task(cv_info_dict):
     try:
         file_path = cv_info_dict.get("temp_video_path")
         cfr_video_path = cv_info_dict.get("temp_video_path").split('.mp')[0] + "1.mp4"
+        logger.info(cfr_video_path)
         ff = FFmpeg(
             inputs={file_path: None},
             outputs={

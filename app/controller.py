@@ -6,7 +6,7 @@
 """
 import json
 import os
-from datetime import datetime
+import time
 
 from flask import request, Response, Blueprint, render_template
 from celery.result import AsyncResult
@@ -50,8 +50,9 @@ def update_cv_data():
         base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
         if not os.path.exists(base_path):
             os.mkdir(base_path)
-        file_path = os.path.join(base_path, str(datetime.now()) + f.filename)
+        file_path = os.path.join(base_path, str(time.time()) + f.filename)
         f.save(file_path)  # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
+        logger.info(file_path)
         r = cv_index_task.delay({"temp_video_path": file_path, "index_types": request.form.getlist("index_types")})
         task_id = r.task_id
         return Response(json.dumps({
