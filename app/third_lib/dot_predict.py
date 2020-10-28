@@ -51,10 +51,10 @@ class DotVideoIndex(object):
         """根据buvid从uat es接口获取各个播放事件的最新数据,
         :return:
         """
-        es_url = "http://172.22.33.113:80/billions-datacenter.buryingpoint.buryingpoint-@*/_search"
+        es_url = "http://172.22.33.113:81/v7/billions-datacenter.buryingpoint.buryingpoint-@*/_search"
         payload = {
             "from": 0,
-            "size": 1000,
+            "size": 3000,
             "query": {
                 "bool": {
                     "filter": [
