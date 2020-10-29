@@ -53,8 +53,8 @@ class DotVideoIndex(object):
         """
         es_url = "http://172.22.33.113:81/v7/billions-datacenter.buryingpoint.buryingpoint-@*/_search"
         payload = {
-            "from": 0,
-            "size": 3000,
+            "from": 10,
+            "size": 1000,
             "query": {
                 "bool": {
                     "filter": [
@@ -105,15 +105,19 @@ class DotVideoIndex(object):
         if retry_time >= 3:
             raise Exception("access ops-log error time > 3")
         else:
-            for event_log in es_result_json.get("hits").get("hits"):
-                event_log = event_log.get("_source").get("log")
-                event_info_list = event_log.split("||||")
-                event_name = event_info_list[0].split("|")[-5]
-                event_info_json = json.loads(event_info_list[1])
-                if event_name in player_event_dict:
-                    player_event_dict[event_name].append(event_info_json)
-                else:
-                    player_event_dict[event_name] = [event_info_json]
+            try:
+                for event_log in es_result_json.get("hits").get("hits"):
+                    event_log = event_log.get("_source").get("log")
+                    event_info_list = event_log.split("||||")
+                    event_name = event_info_list[0].split("|")[-5]
+                    event_info_json = json.loads(event_info_list[1])
+                    if event_name in player_event_dict:
+                        player_event_dict[event_name].append(event_info_json)
+                    else:
+                        player_event_dict[event_name] = [event_info_json]
+            except BaseException as error:
+                self.__logger.error(error)
+                raise Exception('ops-log es port return is error')
         print(json.dumps(player_event_dict))
         return player_event_dict
 
