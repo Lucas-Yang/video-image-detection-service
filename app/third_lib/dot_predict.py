@@ -53,7 +53,7 @@ class DotVideoIndex(object):
         """
         es_url = "http://172.22.33.113:81/v7/billions-datacenter.buryingpoint.buryingpoint-@*/_search"
         payload = {
-            "from": 10,
+            "from": 0,
             "size": 1000,
             "query": {
                 "bool": {
