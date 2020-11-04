@@ -136,7 +136,8 @@ class StartAppTimer(FirstFrameTimer):
 
     def __init__(self, start_app_dict=None):
         self.stage_name_list = ["阶段0：app打开", "阶段1：app推荐页加载", "阶段2：app正确启动页面", "阶段3：其他无关页面"]
-        super.__init__()
+        super(StartAppTimer, self).__init__(start_app_dict)
+        # super.__init__(start_app_dict)
 
 
 class PlayerFreezeScreenWatcher(object):

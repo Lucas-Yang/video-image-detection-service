@@ -52,6 +52,7 @@ class PlayerIndex(object):
         """
         cls_results_dict = {"frame 分类": [[None, None]]}
         first_frame_time = None
+        start_app_time = None
         black_frame_list = []
         freeze_frame_list = []
 
@@ -66,7 +67,7 @@ class PlayerIndex(object):
             elif index_type == ModelType.BLURREDFRAME.name:
                 pass
             elif index_type == ModelType.STARTAPP.name:
-                pass
+                start_app_time, cls_results_dict = deep_index_handler.get_app_start_time()
             else:
                 pass
 
@@ -89,6 +90,7 @@ class PlayerIndex(object):
 
         cv_index_result = {
             "image_dict": cls_results_dict,
+            "start_app_time": start_app_time,
             "first_frame_time": first_frame_time,
             "black_frame_list": black_frame_list,
             "freeze_frame_list": freeze_frame_list
