@@ -59,6 +59,13 @@ class DotVideoIndex(object):
                 "bool": {
                     "filter": [
                         {
+                            "match_phrase": {
+                                "fields.env": {
+                                    "query": "prod"
+                                }
+                            }
+                        },
+                        {
                             "query_string": {
                                 "query": "\"logid:002879\""
                             }
