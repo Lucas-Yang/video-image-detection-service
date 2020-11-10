@@ -339,7 +339,7 @@ class DeepVideoIndex(object):
         predict_async_tasks = {}
         while success:
             count += 1
-            if count % (fps // 8) == 0:
+            if count % (fps // 10) == 0:
                 success, image = cap.read()
                 if success:
                     image_col, image_row = image.shape[0], image.shape[1]
