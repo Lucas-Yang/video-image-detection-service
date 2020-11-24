@@ -55,7 +55,7 @@ class PlayerIndex(object):
         start_app_time = None
         black_frame_list = []
         freeze_frame_list = []
-
+        first_frame_timestamp = None
         deep_index_handler = DeepVideoIndex(self.cv_info_dict)
         for index_type in set(self.cv_info_dict.get("index_types")):
             if index_type == ModelType.FIRSTFRAME.name:
@@ -72,21 +72,15 @@ class PlayerIndex(object):
                 pass
 
         # 数据筛选，只判断播放阶段的卡顿与黑屏，删除播放前阶段的卡顿与黑屏数据
-        if first_frame_time:
-            # if len(cls_results_dict.get(0, [])) > 0:
-            #     first_frame_time_step = cls_results_dict.get(0)[0][1] + first_frame_time
-            # elif len(cls_results_dict.get(0, [])) == 0 and len(cls_results_dict.get(1, [])) > 0:
-            #     first_frame_time_step = cls_results_dict.get(1)[0][1] + first_frame_time
-            # else:
-            #     pass
+        if first_frame_time and first_frame_timestamp:
             first_frame_time_step = first_frame_timestamp
 
             freeze_frame_list = [freeze_frame_dict for freeze_frame_dict in freeze_frame_list
                                  if float(freeze_frame_dict.get("freeze_start_time")) > first_frame_time_step
                                  ]
-            black_frame_list = [black_frame_dict for black_frame_dict in black_frame_list
-                                if float(black_frame_dict.get("black_start") > first_frame_time_step)
-                                ]
+            # black_frame_list = [black_frame_dict for black_frame_dict in black_frame_list
+            #                    if float(black_frame_dict.get("black_start") > first_frame_time_step)
+            #                    ]
 
         cv_index_result = {
             "image_dict": cls_results_dict,
