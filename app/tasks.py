@@ -53,6 +53,7 @@ def cv_index_task(cv_info_dict):
         logger.error(traceback.format_exc())
         task_success_flag = False
         cv_result_index = {}
+        os.remove(cv_info_dict.get("temp_video_path"))  # 删除临时视频文件
 
     return task_success_flag, cv_result_index
 
