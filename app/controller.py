@@ -12,7 +12,7 @@ from flask import request, Response, Blueprint, render_template
 from celery.result import AsyncResult
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex
-from app.tasks import celery_app, cv_index_task
+from app.tasks import celery_app, cv_index_task, video_quality_task
 
 player_app = Blueprint('player_app', __name__, template_folder='templates')
 format_handler = FormatChecker()
@@ -108,3 +108,33 @@ def heart_beat():
             "stage": ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
             }
     return render_template('template_reporter.html', info=info)
+
+
+@player_app.route('video/ssim', methods=['POST'])
+def get_ssim_index():
+    if format_handler.ssim_index_checker(request):
+        f_src = request.files['file_src']
+        f_target = request.files['file_target']
+        base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
+        if not os.path.exists(base_path):
+            os.mkdir(base_path)
+        file_src_path = os.path.join(base_path, str(time.time()) + f_src.filename)
+        file_target_path = os.path.join(base_path, str(time.time()) + f_target.filename)
+        f_src.save(file_src_path)
+        f_target.save(file_target_path)
+        model_handler = PlayerIndex(video_quality_dict={"src_video": file_src_path, "target_video": file_target_path})
+        video_quality_result_index = model_handler.get_video_quality()
+        os.remove(file_src_path)  # 删除临时视频文件
+        os.remove(file_target_path)  # 删除临时固定帧率源
+        return Response(json.dumps({
+            "code": 0,
+            "message": "Success",
+            "date": video_quality_result_index
+        }), content_type='application/json'
+        )
+    else:
+        return Response(json.dumps({
+            "code": -1,
+            "message": "input error"}), content_type='application/json')
+
+

@@ -3,6 +3,7 @@ dao层
 """
 from app.third_lib.dot_predict import DotVideoIndex
 from app.third_lib.cv_predict import DeepVideoIndex, ModelType
+from app.third_lib.full_reference_video_quality import VideoSSIM
 from app.factory import LogManager
 
 
@@ -10,9 +11,14 @@ class PlayerIndex(object):
     """ 数据获取与数据存储
     """
 
-    def __init__(self, dot_info_dict: dict = None, cv_info_dict: dict = None):
+    def __init__(self,
+                 dot_info_dict: dict = None,
+                 cv_info_dict: dict = None,
+                 video_quality_dict: dict = None
+                 ):
         self.dot_info_dict = dot_info_dict
         self.cv_info_dict = cv_info_dict
+        self.video_quality_dict = video_quality_dict
         self.__logger = LogManager("server.log").logger
 
     def __write_db(self, info_dict: dict = {}):
@@ -91,6 +97,16 @@ class PlayerIndex(object):
         }
         # self.__write_db()
         return cv_index_result
+
+    def get_video_quality(self):
+        """
+        :return:
+        """
+        src_video = self.video_quality_dict.get("src_video")
+        target_video = self.video_quality_dict.get("target_video")
+        video_quality_handler = VideoSSIM(src_video, target_video)
+        ssim_score = video_quality_handler.get_video_ffmpeg_ssim_index()
+        return {"ssim_score": ssim_score}
 
 
 if __name__ == '__main__':

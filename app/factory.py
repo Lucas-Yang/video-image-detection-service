@@ -172,6 +172,20 @@ class FormatChecker(object):
             return False
         return True
 
+    def ssim_index_checker(self, request):
+        """ 相似性计算文档
+        :param request:
+        :return:
+        """
+        try:
+            if request.files['file'].filename.split('.')[-1] != "mp4" and \
+                    request.files['file'].filename.split('.')[-1] != "MP4":
+                raise Exception("input file is not mp4")
+        except BaseException as err:
+            self.__logger.error(err)
+            return False
+        return True
+
 
 class MyMongoClient(object):
     """mongo 操作类

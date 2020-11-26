@@ -1,3 +1,4 @@
+scikit-image
 gunicorn
 stagesepx
 werkzeug
