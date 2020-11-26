@@ -169,15 +169,12 @@ class PlayerFreezeScreenWatcher(object):
                         if "freeze_start" in line_info:
                             match_objects_start = re.match(".*freeze_start: (.*)", line_info, re.M | re.I)
                             freeze_start_list.append(match_objects_start.group(1))
-                            # print("freeze_start", match_objects_start.group(1))
                         elif "freeze_duration" in line_info:
                             match_objects_duration = re.match(".*freeze_duration: (.*)", line_info, re.M | re.I)
                             freeze_duration_list.append(match_objects_duration.group(1))
-                            # print("freeze_duration", match_objects_duration.group(1))
                         elif "freeze_end" in line_info:
                             match_objects_duration = re.match(".*freeze_end: (.*)", line_info, re.M | re.I)
                             freeze_end_list.append(match_objects_duration.group(1))
-                            # print("freeze_end", match_objects_duration.group(1))
                         else:
                             continue
                     except Exception as error:
@@ -323,7 +320,6 @@ class DeepVideoIndex(object):
         prediction = response.json()['predictions'][0]
         del frame_list
         del frame_data
-        # print("{}, {}".format(str(np.argmax(prediction)), frame_url))
         return np.argmax(prediction), frame_url
 
     def __cut_frame_upload_predict(self, model_type=None):
@@ -333,7 +329,6 @@ class DeepVideoIndex(object):
         total_frame, fps, per_frame_time = self.__get_video_info()
         cap = cv2.VideoCapture(self.video_info.get("temp_video_path"))
         _, _ = cap.read()
-        # os.remove(self.video_info.get("temp_video_path"))  # 删除临时视频文件
         count = 0
         success = True
         predict_async_tasks = {}
@@ -401,7 +396,6 @@ class DeepVideoIndex(object):
         :return:
         """
         self.__cut_frame_upload_predict(ModelType.FIRSTFRAME)  # 分帧预测并上传帧到bfs，避免本地压力
-        # print(self.frames_info_dict)
         first_frame_handler = FirstFrameTimer(frame_info_dict=self.frames_info_dict)
         first_frame_time, cls_results_dict, first_frame_timestamp = first_frame_handler.get_first_frame_time()
 
