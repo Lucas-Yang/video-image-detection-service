@@ -178,8 +178,11 @@ class FormatChecker(object):
         :return:
         """
         try:
-            if request.files['file'].filename.split('.')[-1] != "mp4" and \
-                    request.files['file'].filename.split('.')[-1] != "MP4":
+            if request.files['file_src'].filename.split('.')[-1] != "mp4" and \
+                    request.files['file_src'].filename.split('.')[-1] != "MP4":
+                raise Exception("input file is not mp4")
+            if request.files['file_target'].filename.split('.')[-1] != "mp4" and \
+                    request.files['file_target'].filename.split('.')[-1] != "MP4":
                 raise Exception("input file is not mp4")
         except BaseException as err:
             self.__logger.error(err)
