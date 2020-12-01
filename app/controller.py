@@ -129,7 +129,7 @@ def get_ssim_index():
         return Response(json.dumps({
             "code": 0,
             "message": "Success",
-            "date": video_quality_result_index
+            "data": video_quality_result_index
         }), content_type='application/json'
         )
     else:
