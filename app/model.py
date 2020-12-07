@@ -72,8 +72,13 @@ class PlayerIndex(object):
                 freeze_frame_list = deep_index_handler.get_freeze_frame_info()
             elif index_type == ModelType.BLURREDFRAME.name:
                 pass
-            elif index_type == ModelType.STARTAPP.name:
-                start_app_time, cls_results_dict = deep_index_handler.get_app_start_time()
+            elif index_type in (ModelType.STARTAPP.name,
+                                ModelType.STARTAPPIQIYI.name,
+                                ModelType.STARTAPPIXIGUA.name,
+                                ModelType.STARTAPPTENCENT.name,
+                                ModelType.STARTAPPYOUKU
+                                ):
+                start_app_time, cls_results_dict = deep_index_handler.get_app_start_time(index_type)
             else:
                 pass
 
@@ -111,6 +116,7 @@ class PlayerIndex(object):
 
 if __name__ == '__main__':
     import json
+
     cv_info_dict = {"temp_video_path": "/Users/luoyadong/PycharmProjects/PlayerIndex/result/screen.mp4",
                     "index_types": ["FREEZEFRAME", "BLACKFRAME", "FIRSTFRAME"]
                     }
