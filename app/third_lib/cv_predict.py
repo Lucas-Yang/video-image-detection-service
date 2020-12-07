@@ -14,7 +14,6 @@ import queue
 from collections import OrderedDict
 import numpy as np
 from PIL import Image
-from io import BytesIO
 from enum import Enum
 
 from functools import wraps
@@ -428,7 +427,6 @@ class DeepVideoIndex(object):
 
 
 if __name__ == '__main__':
-    import json
     cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/video.mp4'}
     deep_index_handler = DeepVideoIndex(cv_info)
     print(json.dumps(deep_index_handler.get_app_start_time()[1]))
