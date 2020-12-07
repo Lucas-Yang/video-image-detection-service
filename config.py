@@ -11,7 +11,7 @@ daemon = 'false'
 # 工作模式协程
 worker_class = 'gevent'
 # 设置最大并发量
-worker_connections = 2000
+worker_connections = 1000
 # 设置进程文件目录
 pidfile = 'log/gunicorn.pid'
 # 设置访问日志和错误信息日志路径
