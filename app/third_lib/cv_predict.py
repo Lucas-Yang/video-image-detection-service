@@ -353,9 +353,6 @@ class DeepVideoIndex(object):
                         predict_async_tasks[predict_async_task] = count * per_frame_time
                     except Exception as err:
                         self.__logger.error(err)
-                    # 实验
-                    # if count > 10:
-                    #     break
                 else:
                     continue
             else:
@@ -370,26 +367,6 @@ class DeepVideoIndex(object):
                 self.__logger.error(err)
                 continue
             self.frames_info_dict[frame_name] = [time_step, predict_result]
-
-    @classmethod
-    def __load_image_url(cls, image_url: str):
-        """ 从url 读取图片数据, 返回多位数组(模型服务接口输入是数据，不是np)
-        :param image_url:
-        :return:
-        """
-        try_time = 0
-        while try_time < 3:
-            try:
-                img = Image.open(BytesIO(requests.get(image_url).content))
-                img = img.convert('RGB')
-                img = img.resize((160, 90), Image.NEAREST)
-                img = np.asarray(img)
-                img = img / 255  # 此处还需要将0-255转化为0-1
-                img = img.tolist()
-                return img
-            except Exception as err:
-                try_time += 1
-        raise Exception("access bfs error time > 3")
 
     def get_first_frame_time(self):
         """ 播放器首帧时间
@@ -451,10 +428,12 @@ class DeepVideoIndex(object):
 
 
 if __name__ == '__main__':
-    cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/test2.mp4'}
+    import json
+    cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/video.mp4'}
     deep_index_handler = DeepVideoIndex(cv_info)
+    print(json.dumps(deep_index_handler.get_app_start_time()[1]))
     # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
-    freeze_frame_list = deep_index_handler.get_freeze_frame_info()
-    black_frame_list = deep_index_handler.get_black_frame_info()
-    print(freeze_frame_list)
-    print(black_frame_list)
+    # freeze_frame_list = deep_index_handler.get_freeze_frame_info()
+    # black_frame_list = deep_index_handler.get_black_frame_info()
+    # print(freeze_frame_list)
+    # print(black_frame_list)
