@@ -59,6 +59,10 @@ class ModelType(Enum):
     FREEZEFRAME = 3  # 卡顿
     BLURREDFRAME = 4  # 花屏
     BLACKFRAME = 5  # 黑屏
+    STARTAPPTENCENT = 6  # app启动时间-腾讯
+    STARTAPPIQIYI = 7  # app启动时间-爱奇艺
+    STARTAPPYOUKU = 8  # app启动时间-优酷
+    STARTAPPIXIGUA = 9  # app启动时间-西瓜视频
 
 
 class FirstFrameTimer(object):
@@ -256,6 +260,11 @@ class DeepVideoIndex(object):
 
         self.__first_frame_server_url = "http://172.22.118.51:8501/v1/models/first_frame_model:predict"
         self.__start_app_server_url = "http://172.22.118.51:8501/v1/models/start_app_model:predict"
+        self.__start_app_tencent_server_url = "http://172.22.118.51:8501/v1/models/start_app_tencent_model:predict"
+        self.__start_app_iqiyi_server_url = "http://172.22.118.51:8501/v1/models/start_app_iqiyi_model:predict"
+        self.__start_app_youku_server_url = "http://172.22.118.51:8501/v1/models/start_app_youku_model:predict"
+        self.__start_app_ixigua_server_url = "http://172.22.118.51:8501/v1/models/start_app_ixigua_model:predict"
+
         self.__blurred_screen_server_url = ""
         self.__black_screen_server_url = ""
         self.__freeze_screen_server_url = ""
@@ -308,6 +317,14 @@ class DeepVideoIndex(object):
             model_server_url = self.__freeze_screen_server_url
         elif model_type == ModelType.BLACKSFRAME:
             model_server_url = self.__black_screen_server_url
+        elif model_type == ModelType.STARTAPPTENCENT:
+            model_server_url = self.__start_app_tencent_server_url
+        elif model_type == ModelType.STARTAPPIQIYI:
+            model_server_url = self.__start_app_iqiyi_server_url
+        elif model_type == ModelType.STARTAPPYOUKU:
+            model_server_url = self.__start_app_youku_server_url
+        elif model_type == ModelType.STARTAPPIXIGUA:
+            model_server_url = self.__start_app_ixigua_server_url
         else:
             raise Exception("model type is wrong or not supported")
         frame_url = self.__upload_frame(frame_data)
@@ -416,11 +433,21 @@ class DeepVideoIndex(object):
         """
         return
 
-    def get_app_start_time(self):
+    def get_app_start_time(self, index_type):
         """ app启动时间耗时
         :return:
         """
-        self.__cut_frame_upload_predict(ModelType.STARTAPP)
+        if index_type == ModelType.STARTAPP.name:
+            self.__cut_frame_upload_predict(ModelType.STARTAPP)
+        elif index_type == ModelType.STARTAPPYOUKU.name:
+            self.__cut_frame_upload_predict(ModelType.STARTAPPYOUKU)
+        elif index_type == ModelType.STARTAPPTENCENT.name:
+            self.__cut_frame_upload_predict(ModelType.STARTAPPTENCENT)
+        elif index_type == ModelType.STARTAPPIQIYI.name:
+            self.__cut_frame_upload_predict(ModelType.STARTAPPIQIYI)
+        else:
+            self.__cut_frame_upload_predict(ModelType.STARTAPPIXIGUA)
+
         start_app_handler = StartAppTimer(start_app_dict=self.frames_info_dict)
         start_app_time, cls_results_dict, first_frame_timestamp = start_app_handler.get_first_frame_time()
         return start_app_time, cls_results_dict
