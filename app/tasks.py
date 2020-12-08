@@ -10,7 +10,7 @@ import traceback
 
 logger = LogManager('server.log').logger
 
-# plz double check redis database num
+# plz double check redis database num, nvm-t-ep-common-01
 brokers = 'redis://172.22.119.29:6379/5'
 backend = 'redis://172.22.119.29:6379/6'
 # brokers = 'redis://0.0.0.0:6379/3'

@@ -258,12 +258,12 @@ class DeepVideoIndex(object):
         self.frames_info_dict = {}
         self.__logger = LogManager("server.log").logger
 
-        self.__first_frame_server_url = "http://172.22.118.51:8501/v1/models/first_frame_model:predict"
-        self.__start_app_server_url = "http://172.22.118.51:8501/v1/models/start_app_model:predict"
-        self.__start_app_tencent_server_url = "http://172.22.118.51:8501/v1/models/start_app_tencent_model:predict"
-        self.__start_app_iqiyi_server_url = "http://172.22.118.51:8501/v1/models/start_app_iqiyi_model:predict"
-        self.__start_app_youku_server_url = "http://172.22.118.51:8501/v1/models/start_app_youku_model:predict"
-        self.__start_app_ixigua_server_url = "http://172.22.118.51:8501/v1/models/start_app_ixigua_model:predict"
+        self.__first_frame_server_url = "http://172.22.119.82:8501/v1/models/first_frame_model:predict"
+        self.__start_app_server_url = "http://172.22.119.82:8501/v1/models/start_app_model:predict"
+        self.__start_app_tencent_server_url = "http://172.22.119.82:8501/v1/models/start_app_tencent_model:predict"
+        self.__start_app_iqiyi_server_url = "http://172.22.119.82:8501/v1/models/start_app_iqiyi_model:predict"
+        self.__start_app_youku_server_url = "http://172.22.119.82:8501/v1/models/start_app_youku_model:predict"
+        self.__start_app_ixigua_server_url = "http://172.22.119.82:8501/v1/models/start_app_ixigua_model:predict"
 
         self.__blurred_screen_server_url = ""
         self.__black_screen_server_url = ""
