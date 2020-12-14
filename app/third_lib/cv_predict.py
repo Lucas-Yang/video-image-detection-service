@@ -10,6 +10,7 @@ import json
 import re
 import requests
 import queue
+import traceback
 
 from collections import OrderedDict
 import numpy as np
@@ -114,9 +115,6 @@ class FirstFrameTimer(object):
         if len(self._cls_dict.get(0, [])) and len(self._cls_dict.get(2, [])):
             start_frame_index = 0
             while self.first_frame_time <= 0:
-                # self.first_frame_time = float(
-                #    self.frame_info_dict.get(self._cls_dict.get(2)[0][0])[start_frame_index]) - \
-                #                         float(self.frame_info_dict.get(self._cls_dict.get(0)[0][0])[0])
                 self.first_frame_time = float(self._cls_dict.get(2)[start_frame_index][1]) - \
                                         float(self._cls_dict.get(0)[0][1])
                 start_frame_index += 1
@@ -309,26 +307,35 @@ class DeepVideoIndex(object):
         """
         if model_type == ModelType.STARTAPP:
             model_server_url = self.__start_app_server_url
+
         elif model_type == ModelType.FIRSTFRAME:
             model_server_url = self.__first_frame_server_url
+
         elif model_type == ModelType.BLURREDFRAME:
             model_server_url = self.__blurred_screen_server_url
+
         elif model_type == ModelType.FREEZEFRAME:
             model_server_url = self.__freeze_screen_server_url
-        elif model_type == ModelType.BLACKSFRAME:
+
+        elif model_type == ModelType.BLACKFRAME:
             model_server_url = self.__black_screen_server_url
+
         elif model_type == ModelType.STARTAPPTENCENT:
             model_server_url = self.__start_app_tencent_server_url
+
         elif model_type == ModelType.STARTAPPIQIYI:
             model_server_url = self.__start_app_iqiyi_server_url
+
         elif model_type == ModelType.STARTAPPYOUKU:
             model_server_url = self.__start_app_youku_server_url
+
         elif model_type == ModelType.STARTAPPIXIGUA:
             model_server_url = self.__start_app_ixigua_server_url
+
         else:
             raise Exception("model type is wrong or not supported")
-        frame_url = self.__upload_frame(frame_data)
 
+        frame_url = self.__upload_frame(frame_data)
         headers = {"content-type": "application/json"}
         body = {"instances": [{"input_1": frame_list}]}
         response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
@@ -381,6 +388,7 @@ class DeepVideoIndex(object):
                 predict_result, frame_name = predict_async_task.result(timeout=20)
             except Exception as err:
                 self.__logger.error(err)
+                self.__logger.error(traceback.print_exc())
                 continue
             self.frames_info_dict[frame_name] = [time_step, predict_result]
 
@@ -447,7 +455,6 @@ class DeepVideoIndex(object):
             self.__cut_frame_upload_predict(ModelType.STARTAPPIQIYI)
         else:
             self.__cut_frame_upload_predict(ModelType.STARTAPPIXIGUA)
-
         start_app_handler = StartAppTimer(start_app_dict=self.frames_info_dict)
         start_app_time, cls_results_dict, first_frame_timestamp = start_app_handler.get_first_frame_time()
         return start_app_time, cls_results_dict
@@ -456,9 +463,7 @@ class DeepVideoIndex(object):
 if __name__ == '__main__':
     cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/video.mp4'}
     deep_index_handler = DeepVideoIndex(cv_info)
-    print(json.dumps(deep_index_handler.get_app_start_time()[1]))
+    print(json.dumps(deep_index_handler.get_app_start_time("STARTAPPYOUKU")))
     # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
     # freeze_frame_list = deep_index_handler.get_freeze_frame_info()
     # black_frame_list = deep_index_handler.get_black_frame_info()
-    # print(freeze_frame_list)
-    # print(black_frame_list)
