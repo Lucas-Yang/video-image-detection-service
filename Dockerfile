@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends apt-utils \
     libgl1-mesa-glx
 RUN apt-get install -y  python3.6 python3-pip
+RUN apt-get install -y redis-server
 RUN pip3 install -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 RUN pip3 install --upgrade https://github.com/celery/celery/tarball/master
 
