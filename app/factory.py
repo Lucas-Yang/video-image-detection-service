@@ -153,7 +153,8 @@ class FormatChecker(object):
                     "maxItems": 5,
                     "items": {
                         "type": "string",
-                        "enum": ["FIRSTFRAME", "STARTAPP", "BLACKFRAME", "BLURREDFRAME", "FREEZEFRAME"]
+                        "enum": ["FIRSTFRAME", "STARTAPP", "BLACKFRAME", "BLURREDFRAME", "FREEZEFRAME",
+                                 "STARTAPPYOUKU", "STARTAPPIXIGUA", "STARTAPPTENCENT", "STARTAPPIQIYI"]
                     }
                 }
             },
