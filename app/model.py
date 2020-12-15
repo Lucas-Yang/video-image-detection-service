@@ -4,7 +4,7 @@ dao层
 from app.third_lib.dot_predict import DotVideoIndex
 from app.third_lib.cv_predict import DeepVideoIndex, ModelType
 from app.third_lib.full_reference_video_quality import VideoSSIM
-from app.factory import LogManager
+from app.factory import LogManager, MyMongoClient
 
 
 class PlayerIndex(object):
@@ -20,6 +20,7 @@ class PlayerIndex(object):
         self.cv_info_dict = cv_info_dict
         self.video_quality_dict = video_quality_dict
         self.__logger = LogManager("server.log").logger
+        self.__db_handler = MyMongoClient()
 
     def __write_db(self, info_dict: dict = {}):
         """ 将计算好的指标入库
@@ -34,6 +35,27 @@ class PlayerIndex(object):
         :return:
         """
         return
+
+    def get_history_parsing_task(self, task_id):
+        """ 查询持久化的任务id，防止任务队列重启后任务丢失
+        :param task_id:
+        :return:
+        """
+        result = self.__db_handler.query("video_parsing_tasks", {"task_id": task_id}).sort("create_time", -1).limit(1)
+        for data in result:
+            return data.get("task_result", None)
+        return
+
+    def save_tasks_db(self, result_dict):
+        """ 同步任务执行结果，理论上起一个定时任务线程，定时同步redis消息队列数据到mongodb储存持久化更合理
+        :param result_dict:
+        :return:
+        """
+        try:
+            self.__db_handler.insert("video_parsing_tasks", result_dict)
+        except Exception as err:
+            self.__logger.error(err)
+            raise Exception(err)
 
     def get_dot_index(self):
         """ 获取打点数据, 获取设备上"最新！！"播放行为的打点数据
