@@ -51,7 +51,8 @@ def update_cv_data():
         if not os.path.exists(base_path):
             os.mkdir(base_path)
         file_path = os.path.join(base_path, str(time.time()) + f.filename)
-        f.save(file_path)  # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
+        # ffmpeg直接读FileStorage的方法暂时没有调研到，所以保存到一个临时文件
+        f.save(file_path)
         logger.info(file_path)
         r = cv_index_task.delay({"temp_video_path": file_path, "index_types": request.form.getlist("index_types")})
         task_id = r.task_id
@@ -69,6 +70,7 @@ def update_cv_data():
 @player_app.route('/index/cv', methods=['GET'])
 def get_cv_index():
     task_id = request.args.get('task_id')
+    model_handler = PlayerIndex()
     if task_id:
         res = AsyncResult(task_id, app=celery_app)
         if res.failed():
@@ -76,12 +78,23 @@ def get_cv_index():
                 "code": -2,
                 "message": "task failed, plz try again"}), content_type='application/json')
         elif res.status == "PENDING" or res.status == "RETRY" or res.status == "STARTED":
-            return Response(json.dumps({
-                "code": -4,
-                "message": "plz wait a moment"}), content_type='application/json')
+            history_result = model_handler.get_history_parsing_task(task_id)
+            if history_result:
+                return Response(json.dumps({
+                    "code": 0,
+                    "data": history_result,
+                    "message": "Success"}), content_type='application/json')
+            else:
+                return Response(json.dumps({
+                    "code": -4,
+                    "message": "plz wait a moment"}), content_type='application/json')
+
         elif res.status == "SUCCESS":
             if res.result[0]:
                 logger.info(res)
+                model_handler.save_tasks_db({"task_id": task_id,
+                                             "task_result": res.result[1]}
+                                            )
                 return Response(json.dumps({
                     "code": 0,
                     "data": res.result[1],

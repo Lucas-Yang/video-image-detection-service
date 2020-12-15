@@ -214,7 +214,13 @@ class MyMongoClient(object):
         if not isinstance(data, dict):
             raise Exception("args `data` is not dict, plz check!")
         data['create_time'] = self.db_initial_time
-        self.db.get_collection(collection).insert_one(data)
+        try:
+            self.db.get_collection(collection).insert_one(data)
+        except Exception as err:
+            if "duplicate key error collection" in str(err):
+                return
+            else:
+                raise Exception(err)
 
     def query(self, collection, select=None):
         """
@@ -248,5 +254,10 @@ class MyThread(threading.Thread):
 
 
 if __name__ == "__main__":
-    handler = FormatChecker()
-    print(handler.player_index_cv_check("{\"index_types\": [\"BLACKFRAME\"]}"))
+    db_handler = MyMongoClient()
+    db_handler.insert("video_parsing_tasks", {"task_id": "be0e768e-4034-427e-8dee-06ed1c0dc60test1",
+                                              "task_result": 11})
+    result = db_handler.query("video_parsing_tasks", {"task_id": "be0e768e-4034-427e-8dee-06ed1c0dc60test1"}).sort("create_time", -1).limit(1)
+
+    for data in result:
+        print(data.get("task_result", None))
