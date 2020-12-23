@@ -149,5 +149,3 @@ def get_ssim_index():
         return Response(json.dumps({
             "code": -1,
             "message": "input error"}), content_type='application/json')
-
-

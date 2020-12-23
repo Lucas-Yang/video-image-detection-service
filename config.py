@@ -19,3 +19,12 @@ accesslog = 'log/gunicorn_acess.log'
 # errorlog = 'log/gunicorn_error.log'
 # 设置日志记录水平
 loglevel = 'info'
+
+# celery 任务队列, mongodb 作为backend方便持久化存储
+CELERY_RESULT_BACKEND = 'mongodb://burytest:GbnO35lpzAyjkPqSXQTiHwLuDs2r4gcR@172.22.34.102:3301/test' \
+                        '?authSource=burytest&replicaSet=bapi&readPreference=primary&appname=MongoDB%2' \
+                        '0Compass&ssl=false'
+CELERY_MONGODB_BACKEND_SETTINGS = {
+    "database": "burytest",
+    "taskmeta_collection": "video_parsing_tasks",
+}
