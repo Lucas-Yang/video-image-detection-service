@@ -64,6 +64,7 @@ class ModelType(Enum):
     STARTAPPIQIYI = 7  # app启动时间-爱奇艺
     STARTAPPYOUKU = 8  # app启动时间-优酷
     STARTAPPIXIGUA = 9  # app启动时间-西瓜视频
+    STARTAPPDOUYIN = 10  # app启动时间-抖音
 
 
 class FirstFrameTimer(object):
@@ -262,6 +263,7 @@ class DeepVideoIndex(object):
         self.__start_app_iqiyi_server_url = "http://172.22.119.82:8501/v1/models/start_app_iqiyi_model:predict"
         self.__start_app_youku_server_url = "http://172.22.119.82:8501/v1/models/start_app_youku_model:predict"
         self.__start_app_ixigua_server_url = "http://172.22.119.82:8501/v1/models/start_app_ixigua_model:predict"
+        self.__start_app_douyin_server_url = "http://172.22.119.82:8501/v1/models/start_app_douyin_model:predict"
 
         self.__blurred_screen_server_url = ""
         self.__black_screen_server_url = ""
@@ -331,6 +333,9 @@ class DeepVideoIndex(object):
 
         elif model_type == ModelType.STARTAPPIXIGUA:
             model_server_url = self.__start_app_ixigua_server_url
+
+        elif model_type == ModelType.STARTAPPDOUYIN:
+            model_server_url = self.__start_app_douyin_server_url
 
         else:
             raise Exception("model type is wrong or not supported")
@@ -453,6 +458,8 @@ class DeepVideoIndex(object):
             self.__cut_frame_upload_predict(ModelType.STARTAPPTENCENT)
         elif index_type == ModelType.STARTAPPIQIYI.name:
             self.__cut_frame_upload_predict(ModelType.STARTAPPIQIYI)
+        elif index_type == ModelType.STARTAPPDOUYIN.name:
+            self.__cut_frame_upload_predict(ModelType.STARTAPPDOUYIN)
         else:
             self.__cut_frame_upload_predict(ModelType.STARTAPPIXIGUA)
         start_app_handler = StartAppTimer(start_app_dict=self.frames_info_dict)
