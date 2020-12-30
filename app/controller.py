@@ -144,7 +144,7 @@ def get_ssim_index():
             "message": "input error"}), content_type='application/json')
 
 
-@image_app.route('quality/whitedetect')
+@image_app.route('quality/white-detect')
 def judge_white_frame():
     if format_handler.image_white_detection_checker(request):
         white_image_file = request.files['file']
