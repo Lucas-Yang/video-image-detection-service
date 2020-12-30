@@ -169,6 +169,16 @@ def judge_white_frame():
             "message": "input error"}), content_type='application/json')
 
 
+@image_app.route('quality/error-detect')
+def judge_error_frame():
+    pass
+
+
+@image_app.route('quality/char-detect')
+def frame_ocr():
+    pass
+
+
 @player_app.route('/')
 def heart_beat():
     info = {"image_dict": {0: ["", ""], 1: ["", ""], 2: ["", ""]},
