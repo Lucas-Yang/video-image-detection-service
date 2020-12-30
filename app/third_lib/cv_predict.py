@@ -335,6 +335,7 @@ class DeepVideoIndex(object):
             model_server_url = self.__start_app_ixigua_server_url
 
         elif model_type == ModelType.STARTAPPDOUYIN:
+            print("#" * 30)
             model_server_url = self.__start_app_douyin_server_url
 
         else:

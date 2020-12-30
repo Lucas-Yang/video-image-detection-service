@@ -11,10 +11,12 @@ import time
 from flask import request, Response, Blueprint, render_template
 from celery.result import AsyncResult
 from app.factory import FormatChecker, LogManager
-from app.model import PlayerIndex
+from app.model import PlayerIndex, ImageIndex
 from app.tasks import celery_app, cv_index_task, video_quality_task
 
 player_app = Blueprint('player_app', __name__, template_folder='templates')
+image_app = Blueprint('image_app', __name__, template_folder='templates')
+
 format_handler = FormatChecker()
 logger = LogManager("server.log").logger
 
@@ -114,15 +116,6 @@ def get_cv_index():
             "message": "input error, make sure task id is correct"}), content_type='application/json')
 
 
-@player_app.route('/')
-def heart_beat():
-    info = {"image_dict": {0: ["", ""], 1: ["", ""], 2: ["", ""]},
-            "first_frame_time": 1,
-            "stage": ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
-            }
-    return render_template('template_reporter.html', info=info)
-
-
 @player_app.route('video/ssim', methods=['POST'])
 def get_ssim_index():
     if format_handler.ssim_index_checker(request):
@@ -149,3 +142,37 @@ def get_ssim_index():
         return Response(json.dumps({
             "code": -1,
             "message": "input error"}), content_type='application/json')
+
+
+@image_app.route('quality/whitedetect')
+def judge_white_frame():
+    if format_handler.image_white_detection_checker(request):
+        white_image_file = request.files['file']
+        image_handler = ImageIndex(white_image_file)
+        if image_handler.black_white_frame_detection():
+            return Response(json.dumps({
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": True}
+            }), content_type='application/json'
+            )
+        else:
+            return Response(json.dumps({
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": False}
+            }), content_type='application/json'
+            )
+    else:
+        return Response(json.dumps({
+            "code": -1,
+            "message": "input error"}), content_type='application/json')
+
+
+@player_app.route('/')
+def heart_beat():
+    info = {"image_dict": {0: ["", ""], 1: ["", ""], 2: ["", ""]},
+            "first_frame_time": 1,
+            "stage": ["阶段0: 播放器打开", "阶段1: 播放器加载", "阶段2: 播放器播放", "阶段3: 无关阶段"]
+            }
+    return render_template('template_reporter.html', info=info)

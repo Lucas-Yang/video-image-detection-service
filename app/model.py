@@ -1,14 +1,19 @@
 """
 dao层
 """
+import numpy
+import cv2
+import io
+
 from app.third_lib.dot_predict import DotVideoIndex
+from app.third_lib.image_quality import ImageQualityIndexGenerator
 from app.third_lib.cv_predict import DeepVideoIndex, ModelType
 from app.third_lib.full_reference_video_quality import VideoSSIM
 from app.factory import LogManager, MyMongoClient
 
 
 class PlayerIndex(object):
-    """ 数据获取与数据存储
+    """ 视频质量数据获取与数据存储
     """
 
     def __init__(self,
@@ -98,7 +103,8 @@ class PlayerIndex(object):
                                 ModelType.STARTAPPIQIYI.name,
                                 ModelType.STARTAPPIXIGUA.name,
                                 ModelType.STARTAPPTENCENT.name,
-                                ModelType.STARTAPPYOUKU.name
+                                ModelType.STARTAPPYOUKU.name,
+                                ModelType.STARTAPPDOUYIN.name
                                 ):
                 start_app_time, cls_results_dict = deep_index_handler.get_app_start_time(index_type)
             else:
@@ -134,6 +140,24 @@ class PlayerIndex(object):
         video_quality_handler = VideoSSIM(src_video, target_video)
         ssim_score = video_quality_handler.get_video_ffmpeg_ssim_index()
         return {"ssim_score": ssim_score}
+
+
+class ImageIndex(object):
+    """ 图像质量数据获取与存储
+    """
+    def __init__(self, quality_file):
+        self.quality_file = quality_file
+
+    def black_white_frame_detection(self):
+        """黑白屏检测
+        :return:
+        """
+        image_index_hander = ImageQualityIndexGenerator()
+        gaussian_score = image_index_hander.get_black_white_frame_score(self.quality_file)
+        if gaussian_score < 10:
+            return True
+        else:
+            return False
 
 
 if __name__ == '__main__':
