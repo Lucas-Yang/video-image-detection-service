@@ -192,20 +192,19 @@ class FormatChecker(object):
             return False
         return True
 
-    def image_white_detection_checker(self, request):
-        """ 黑白屏检测文档
-        :param request:
+    def image_white_detection_checker(self, request_body):
+        """ 图像检测-校验
+        :param request_body:
         :return:
         """
         try:
-            if request.files['file'].filename.split('.')[-1] != "png" and \
-                    request.files['file_src'].filename.split('.')[-1] != "jpg":
+            if request_body.files['file'].filename.split('.')[-1] != "png" and \
+                    request_body.files['file'].filename.split('.')[-1] != "jpg":
                 raise Exception("input file is not png/jpg")
         except BaseException as err:
             self.__logger.error(err)
             return False
         return True
-
 
 
 class MyMongoClient(object):

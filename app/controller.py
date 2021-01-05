@@ -179,6 +179,31 @@ def frame_ocr():
     pass
 
 
+@image_app.route('quality/blurred-detect', methods=['POST'])
+def blurred_frame_detect():
+    if format_handler.image_white_detection_checker(request):
+        image_file = request.files['file']
+        image_handler = ImageIndex(image_file)
+        if image_handler.blurred_frame_detection():
+            return Response(json.dumps({
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": True}
+            }), content_type='application/json'
+            )
+        else:
+            return Response(json.dumps({
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": False}
+            }), content_type='application/json'
+            )
+    else:
+        return Response(json.dumps({
+            "code": -1,
+            "message": "input error"}), content_type='application/json')
+
+
 @player_app.route('/')
 def heart_beat():
     info = {"image_dict": {0: ["", ""], 1: ["", ""], 2: ["", ""]},
