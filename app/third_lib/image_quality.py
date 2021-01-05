@@ -6,8 +6,6 @@ import io
 import numpy
 import requests
 
-import os
-
 
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
