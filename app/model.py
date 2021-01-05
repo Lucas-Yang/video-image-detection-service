@@ -159,6 +159,13 @@ class ImageIndex(object):
         else:
             return False
 
+    def blurred_frame_detection(self):
+        """花屏检测
+        :return:
+        """
+        image_index_hander = ImageQualityIndexGenerator()
+        return image_index_hander.get_if_blurred_frame(self.quality_file)
+
 
 if __name__ == '__main__':
     import json
