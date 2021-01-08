@@ -283,7 +283,7 @@ class DeepVideoIndex(object):
         return total_frame, fps, per_frame_time
 
     def __upload_frame(self, frame_data):
-        """ 上传分帧数据到bfs
+        """ 上传分帧数据到bfs, 如果超时，就返回空字符串
         :param frame_data:
         :return:
         """
@@ -298,7 +298,9 @@ class DeepVideoIndex(object):
                     res.raise_for_status()
             except requests.exceptions.RequestException:
                 try_time += 1
-        raise Exception("access bfs error time > 3")
+        # raise Exception("access bfs error time > 3")
+        self.__logger.error('access bfs error time > 3, this image will return null')
+        return ''
 
     @my_async_decorator
     def __upload_frame_and_cls(self, frame_list=None, frame_data=None, model_type=None):
