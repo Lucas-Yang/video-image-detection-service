@@ -109,7 +109,7 @@ def get_cv_index():
         else:
             return Response(json.dumps({
                 "code": -3,
-                "message": "inner error"}), content_type='application/json')
+                "message": "inner error, return code error"}), content_type='application/json')
     else:
         return Response(json.dumps({
             "code": -1,
@@ -174,9 +174,22 @@ def judge_error_frame():
     pass
 
 
-@image_app.route('quality/char-detect', methods=['POST'])
+@image_app.route('quality/char-recognize', methods=['POST'])
 def frame_ocr():
-    pass
+    if format_handler.image_white_detection_checker(request):
+        white_image_file = request.files['file']
+        image_handler = ImageIndex(white_image_file)
+        ocr_result_list = image_handler.frame_ocr()
+        return Response(json.dumps({
+                "code": 0,
+                "message": "Success",
+                "data": {"ocr_result": ocr_result_list}
+            }), content_type='application/json'
+            )
+    else:
+        return Response(json.dumps({
+            "code": -1,
+            "message": "input error"}), content_type='application/json')
 
 
 @image_app.route('quality/blurred-detect', methods=['POST'])

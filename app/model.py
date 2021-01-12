@@ -147,13 +147,13 @@ class ImageIndex(object):
     """
     def __init__(self, quality_file):
         self.quality_file = quality_file
+        self.image_index_hander = ImageQualityIndexGenerator(self.quality_file)
 
     def black_white_frame_detection(self):
         """黑白屏检测
         :return:
         """
-        image_index_hander = ImageQualityIndexGenerator()
-        gaussian_score = image_index_hander.get_black_white_frame_score(self.quality_file)
+        gaussian_score = self.image_index_hander.get_black_white_frame_score()
         if gaussian_score < 10:
             return True
         else:
@@ -163,8 +163,14 @@ class ImageIndex(object):
         """花屏检测
         :return:
         """
-        image_index_hander = ImageQualityIndexGenerator()
-        return image_index_hander.get_if_blurred_frame(self.quality_file)
+        return self.image_index_hander.get_if_blurred_frame()
+
+    def frame_ocr(self):
+        """ 图像ocr
+        :return:
+        """
+        ocr_result_list = self.image_index_hander.get_ocr_result_list()
+        return ocr_result_list
 
 
 if __name__ == '__main__':
