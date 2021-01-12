@@ -163,7 +163,13 @@ class ImageIndex(object):
         """花屏检测
         :return:
         """
-        return self.image_index_hander.get_if_blurred_frame()
+        predict_result = self.image_index_hander.get_if_blurred_frame()
+        if predict_result == -1:
+            return predict_result
+        elif predict_result == 0:
+            return True
+        else:
+            return False
 
     def frame_ocr(self):
         """ 图像ocr

@@ -120,7 +120,7 @@ class ImageQualityIndexGenerator(object):
         request_url = self.__blurred_frame_check_server_url
         predict_result = self.__access_model_server(img, request_url)
         if predict_result == -1:
-            return "access model server error"
+            return -1
         else:
             return predict_result
 
