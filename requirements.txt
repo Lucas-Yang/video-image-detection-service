@@ -1,3 +1,5 @@
+cnstd
+cnocr
 scikit-image
 gunicorn
 stagesepx

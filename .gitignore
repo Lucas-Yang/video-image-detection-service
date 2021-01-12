@@ -10,6 +10,7 @@ test.py
 .idea*
 venv
 data
+dump.rdb
 
 # My configurations:
 db.ini
