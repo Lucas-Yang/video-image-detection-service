@@ -18,14 +18,42 @@ class ImageQualityIndexGenerator(object):
         """
         """
         self.__blurred_frame_check_server_url = ""
+        self.image_data = self.__bytesIO2img(image_file)
+        self.__img_std = CnStd()
+        self.__img_ocr = CnOcr()
+
+    def __bytesIO2img(self, image_file):
+        """
+        :return:
+        """
         in_memory_file = io.BytesIO()
         image_file.save(in_memory_file)
         img = numpy.fromstring(in_memory_file.getvalue(), numpy.uint8)
         img = cv2.imdecode(img, 1)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        self.image_data = img
-        self.__img_std = CnStd()
-        self.__img_ocr = CnOcr()
+        return img
+
+    def __access_model_server(self, img, request_url):
+
+        """访问接口
+            :param img:
+            :param request_url:
+            :return:
+        """
+        headers = {"content-type": "application/json"}
+        body = {"instances": [{"input_1": img}]}
+        try_times = 0
+        while try_times < 3:
+            try:
+                response = requests.post(request_url, data=json.dumps(body), headers=headers)
+                response.raise_for_status()
+                prediction = response.json()['predictions'][0]
+                return numpy.argmax(prediction)
+            except Exception as err:
+                try_times += 1
+                continue
+        if try_times >= 3:
+            return -1
 
     def __image_ssim_sim(self):
         """
@@ -69,16 +97,12 @@ class ImageQualityIndexGenerator(object):
         :return:
         """
         now = time.time()
-        # img_gray = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2GRAY)
-        # img_canny = cv2.Canny(img_gray, 50, 150)
-        # img_ret = cv2.cvtColor(img_canny, cv2.COLOR_GRAY2RGB)
         box_info_list = self.__img_std.detect(self.image_data, pse_min_area=500)
         print(time.time() - now)
         ocr_result_list = []
         for box_info in box_info_list:
             cropped_img = box_info['cropped_img']
             ocr_res = self.__img_ocr.ocr_for_single_line(cropped_img)
-            # print('ocr result: %s' % ''.join(ocr_res))
             ocr_result_list.append(''.join(ocr_res))
         print(time.time() - now)
         return ocr_result_list
@@ -89,17 +113,16 @@ class ImageQualityIndexGenerator(object):
         """
         img_gray = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2GRAY)
         img_laplace = self.__laplace_image(img_gray)
-        # cv2.imwrite('test1.jpg', img_laplace)
+        img = cv2.cvtColor(img_laplace, cv2.COLOR_GRAY2RGB)
         print(cv2.cvtColor(img_laplace, cv2.COLOR_GRAY2RGB).shape)
         print(img_laplace.shape)
-        return True
+        # return True
         request_url = self.__blurred_frame_check_server_url
-        headers = {"content-type": "application/json"}
-        body = {"instances": [{"input_1": img}]}
-        response = requests.post(request_url, data=json.dumps(body), headers=headers)
-        response.raise_for_status()
-        prediction = response.json()['predictions'][0]
-        # return numpy.argmax(prediction)
+        predict_result = self.__access_model_server(img, request_url)
+        if predict_result == -1:
+            return "access model server error"
+        else:
+            return predict_result
 
     def get_image_ssim(self):
         """ 图像结构相似度相似度
