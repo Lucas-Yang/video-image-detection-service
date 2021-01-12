@@ -197,18 +197,18 @@ def blurred_frame_detect():
     if format_handler.image_white_detection_checker(request):
         image_file = request.files['file']
         image_handler = ImageIndex(image_file)
-        if image_handler.blurred_frame_detection():
+        result = image_handler.blurred_frame_detection()
+        if result == -1:
             return Response(json.dumps({
-                "code": 0,
-                "message": "Success",
-                "data": {"judge": True}
+                "code": -2,
+                "message": "access model server error"
             }), content_type='application/json'
             )
         else:
             return Response(json.dumps({
                 "code": 0,
                 "message": "Success",
-                "data": {"judge": False}
+                "data": {"judge": result}
             }), content_type='application/json'
             )
     else:
