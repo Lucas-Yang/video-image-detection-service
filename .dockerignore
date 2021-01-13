@@ -1,3 +1,10 @@
-temp?
-test?
+temp*
+test*
+dump.rdb
+.DS_Store
+__pycache__
+.idea
+.git
 venv
+
+
