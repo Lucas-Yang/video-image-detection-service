@@ -1,5 +1,6 @@
 cnstd
 cnocr
+mxnet
 scikit-image
 gunicorn
 stagesepx

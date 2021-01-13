@@ -30,6 +30,7 @@ class ImageQualityIndexGenerator(object):
         image_file.save(in_memory_file)
         img = numpy.fromstring(in_memory_file.getvalue(), numpy.uint8)
         img = cv2.imdecode(img, 1)
+        # cv2.imwrite('messigray.png', img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return img
 
@@ -114,9 +115,6 @@ class ImageQualityIndexGenerator(object):
         img_gray = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2GRAY)
         img_laplace = self.__laplace_image(img_gray)
         img = cv2.cvtColor(img_laplace, cv2.COLOR_GRAY2RGB)
-        print(cv2.cvtColor(img_laplace, cv2.COLOR_GRAY2RGB).shape)
-        print(img_laplace.shape)
-        # return True
         request_url = self.__blurred_frame_check_server_url
         predict_result = self.__access_model_server(img, request_url)
         if predict_result == -1:
