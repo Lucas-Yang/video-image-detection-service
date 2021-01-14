@@ -7,7 +7,11 @@ import numpy
 import requests
 from cnocr import CnOcr
 from cnstd import CnStd
+from PIL import Image
 import time
+
+# img_std = CnStd()
+# img_ocr = CnOcr()
 
 
 class ImageQualityIndexGenerator(object):
@@ -17,7 +21,7 @@ class ImageQualityIndexGenerator(object):
     def __init__(self, image_file):
         """
         """
-        self.__blurred_frame_check_server_url = ""
+        self.__blurred_frame_check_server_url = "http://172.22.119.82:8501/v1/models/best_blurred_screen_model:predict"
         self.image_data = self.__bytesIO2img(image_file)
         self.__img_std = CnStd()
         self.__img_ocr = CnOcr()
@@ -30,7 +34,6 @@ class ImageQualityIndexGenerator(object):
         image_file.save(in_memory_file)
         img = numpy.fromstring(in_memory_file.getvalue(), numpy.uint8)
         img = cv2.imdecode(img, 1)
-        # cv2.imwrite('messigray.png', img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return img
 
@@ -51,6 +54,7 @@ class ImageQualityIndexGenerator(object):
                 prediction = response.json()['predictions'][0]
                 return numpy.argmax(prediction)
             except Exception as err:
+                print(err)
                 try_times += 1
                 continue
         if try_times >= 3:
@@ -98,7 +102,16 @@ class ImageQualityIndexGenerator(object):
         :return:
         """
         now = time.time()
-        box_info_list = self.__img_std.detect(self.image_data, pse_min_area=500)
+        image = Image.fromarray(self.image_data)  # 先转格式为Image 为了统一输入图像尺寸
+        if (image.size[0] * image.size[1]) > 20000:
+            predict_image = image.resize(
+                (int(image.size[0] * 0.5), int(image.size[1] * 0.5)),
+                Image.NEAREST
+            )
+        else:
+            predict_image = image
+        img = numpy.asarray(predict_image)
+        box_info_list = self.__img_std.detect(img, pse_min_area=500)
         print(time.time() - now)
         ocr_result_list = []
         for box_info in box_info_list:
@@ -115,8 +128,12 @@ class ImageQualityIndexGenerator(object):
         img_gray = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2GRAY)
         img_laplace = self.__laplace_image(img_gray)
         img = cv2.cvtColor(img_laplace, cv2.COLOR_GRAY2RGB)
+        image = Image.fromarray(img)  # 先转格式为Image 为了统一输入图像尺寸
+        predict_image = image.resize((90, 160), Image.NEAREST)
+        img = numpy.asarray(predict_image)
+        img_list = img.tolist()
         request_url = self.__blurred_frame_check_server_url
-        predict_result = self.__access_model_server(img, request_url)
+        predict_result = self.__access_model_server(img_list, request_url)
         if predict_result == -1:
             return -1
         else:

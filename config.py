@@ -1,9 +1,12 @@
 # /usr/bin/env python
 # -*- coding: utf-8 -*-
+import multiprocessing
+
 # 并行工作进程数
+# workers = multiprocessing.cpu_count() * 2 + 1
 workers = 4
 # 指定每个工作者的线程数
-threads = 2
+threads = 10
 # 监听内网端口
 bind = '0.0.0.0:8090'
 # 设置守护进程,将进程交给supervisor管理
@@ -16,9 +19,10 @@ worker_connections = 1000
 pidfile = 'log/gunicorn.pid'
 # 设置访问日志和错误信息日志路径
 accesslog = 'log/gunicorn_acess.log'
-# errorlog = 'log/gunicorn_error.log'
+errorlog = 'log/gunicorn_error.log'
 # 设置日志记录水平
-loglevel = 'info'
+loglevel = 'DEBUG'
+timeout = 120
 
 # celery 任务队列, mongodb 作为backend方便持久化存储
 CELERY_RESULT_BACKEND = 'mongodb://burytest:GbnO35lpzAyjkPqSXQTiHwLuDs2r4gcR@172.22.34.102:3301/test' \

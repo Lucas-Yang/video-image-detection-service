@@ -1,10 +1,6 @@
 """
 dao层
 """
-import numpy
-import cv2
-import io
-
 from app.third_lib.dot_predict import DotVideoIndex
 from app.third_lib.image_quality import ImageQualityIndexGenerator
 from app.third_lib.cv_predict import DeepVideoIndex, ModelType
@@ -148,6 +144,7 @@ class ImageIndex(object):
     def __init__(self, quality_file):
         self.quality_file = quality_file
         self.image_index_hander = ImageQualityIndexGenerator(self.quality_file)
+        self.__logger = LogManager("server.log").logger
 
     def black_white_frame_detection(self):
         """黑白屏检测
@@ -176,6 +173,7 @@ class ImageIndex(object):
         :return:
         """
         ocr_result_list = self.image_index_hander.get_ocr_result_list()
+        self.__logger.info("ocr:{}".format(ocr_result_list))
         return ocr_result_list
 
 

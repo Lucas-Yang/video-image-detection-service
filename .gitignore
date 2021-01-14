@@ -11,6 +11,7 @@ test.py
 venv
 data
 dump.rdb
+model
 
 # My configurations:
 db.ini
