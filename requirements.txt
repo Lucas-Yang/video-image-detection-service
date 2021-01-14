@@ -1,9 +1,10 @@
-cnstd
-cnocr
-mxnet
+cnstd==0.1.1
+cnocr==1.2.2
+sentry_sdk
+blinker
+mxnet==1.6.0
 scikit-image
-gunicorn
-stagesepx
+gunicorn==20.0.4
 werkzeug
 numpy
 Pillow

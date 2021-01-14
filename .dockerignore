@@ -1,8 +1,7 @@
-temp*
-test*
 dump.rdb
 .DS_Store
 __pycache__
+tests
 .idea
 .git
 venv
