@@ -23,8 +23,8 @@ class ImageQualityIndexGenerator(object):
         """
         self.__blurred_frame_check_server_url = "http://172.22.119.82:8501/v1/models/best_blurred_screen_model:predict"
         self.image_data = self.__bytesIO2img(image_file)
-        self.__img_std = CnStd()
-        self.__img_ocr = CnOcr()
+        # self.__img_std = CnStd()
+        # self.__img_ocr = CnOcr()
 
     def __bytesIO2img(self, image_file):
         """
@@ -102,6 +102,8 @@ class ImageQualityIndexGenerator(object):
         :return:
         """
         now = time.time()
+        __img_std = CnStd()
+        __img_ocr = CnOcr(name=str(now))
         image = Image.fromarray(self.image_data)  # 先转格式为Image 为了统一输入图像尺寸
         if (image.size[0] * image.size[1]) > 20000:
             predict_image = image.resize(
@@ -111,14 +113,16 @@ class ImageQualityIndexGenerator(object):
         else:
             predict_image = image
         img = numpy.asarray(predict_image)
-        box_info_list = self.__img_std.detect(img, pse_min_area=500)
+        box_info_list = __img_std.detect(img, pse_min_area=500)
         print(time.time() - now)
         ocr_result_list = []
         for box_info in box_info_list:
             cropped_img = box_info['cropped_img']
-            ocr_res = self.__img_ocr.ocr_for_single_line(cropped_img)
+            ocr_res = __img_ocr.ocr_for_single_line(cropped_img)
             ocr_result_list.append(''.join(ocr_res))
         print(time.time() - now)
+        del __img_std
+        del __img_ocr
         return ocr_result_list
 
     def get_if_blurred_frame(self):
