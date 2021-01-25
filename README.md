@@ -199,6 +199,14 @@ docker打包：
 依赖文档：
 - https://kkroening.github.io/ffmpeg-python/
 
+## 五 升级记录
+
+| 升级内容 | 升级时间    |
+|------|-------|
+|任务队列BACKEND替换成mongodb，方便任务数据持久化 |  1-21 |
+|访问模型服务替换成长链接，新增连接池管理| 1-22|
+|修改接口架构，替换flask为FASTAPI|1-25|
+
 
 
 

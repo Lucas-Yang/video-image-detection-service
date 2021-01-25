@@ -20,7 +20,7 @@ from enum import Enum
 from functools import wraps
 from app.factory import LogManager, MyThread
 
-thread_executor = ThreadPoolExecutor(max_workers=20)
+thread_executor = ThreadPoolExecutor(max_workers=10)
 
 
 def my_async_decorator(f):
@@ -270,6 +270,10 @@ class DeepVideoIndex(object):
         self.__freeze_screen_server_url = ""
         self.__bfs_url = "http://uat-bfs.bilibili.co/bfs/davinci"  # 上传分帧图片到bfs保存
         self.__task_queue = queue.Queue()
+        self.__session = self.__get_http_session(pool_connections=2,
+                                                 pool_maxsize=1000,
+                                                 max_retries=3
+                                                 )
 
     def __get_video_info(self):
         """
@@ -282,25 +286,69 @@ class DeepVideoIndex(object):
         per_frame_time = 1 / fps
         return total_frame, fps, per_frame_time
 
+    def __get_http_session(self, pool_connections, pool_maxsize, max_retries):
+        session = requests.Session()
+        # 创建一个适配器，连接池的数量pool_connections, 最大数量pool_maxsize, 失败重试的次数max_retries
+        adapter = requests.adapters.HTTPAdapter(pool_connections=pool_connections,
+                                                pool_maxsize=pool_maxsize,
+                                                max_retries=max_retries,
+                                                pool_block=True
+                                                )
+        # 告诉requests，http协议和https协议都使用这个适配器
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
+
     def __upload_frame(self, frame_data):
         """ 上传分帧数据到bfs, 如果超时，就返回空字符串
         :param frame_data:
         :return:
         """
-        try_time = 0
-        while try_time < 3:
+        retry_time = 0
+        while retry_time < 3:
             try:
+                retry_time += 1
                 headers = {"Content-type": "image/png"}
-                res = requests.put(self.__bfs_url, data=frame_data, headers=headers)
+                res = self.__session.put(self.__bfs_url,
+                                         data=frame_data,
+                                         headers=headers
+                                         )
                 if res.status_code == 200:
                     return res.headers.get('Location')
                 else:
                     res.raise_for_status()
-            except requests.exceptions.RequestException:
-                try_time += 1
-        # raise Exception("access bfs error time > 3")
-        self.__logger.error('access bfs error time > 3, this image will return null')
+            except Exception as err:
+                continue
+                # self.__logger.error(err)
+                # return ''
+        self.__logger.error('bfs > 3')
         return ''
+
+    def __predict_single_frame(self, frame_list, model_server_url):
+        """
+        :param frame_list: predict_data
+        :param model_server_url: model_server
+        :return:
+        """
+        retry_time = 0
+        while retry_time < 3:
+            try:
+                headers = {"content-type": "application/json"}
+                body = {"instances": [{"input_1": frame_list}]}
+                response = self.__session.post(model_server_url,
+                                               data=json.dumps(body),
+                                               headers=headers)
+                if response.status_code == 200:
+                    prediction = response.json()['predictions'][0]
+                    return np.argmax(prediction)
+                else:
+                    response.raise_for_status()
+            except Exception as err:
+                continue
+                # self.__logger.error(err)
+                # raise Exception(err)
+        self.__logger.error('model > 3')
+        raise Exception('model > 3')
 
     @my_async_decorator
     def __upload_frame_and_cls(self, frame_list=None, frame_data=None, model_type=None):
@@ -337,21 +385,16 @@ class DeepVideoIndex(object):
             model_server_url = self.__start_app_ixigua_server_url
 
         elif model_type == ModelType.STARTAPPDOUYIN:
-            print("#" * 30)
             model_server_url = self.__start_app_douyin_server_url
 
         else:
             raise Exception("model type is wrong or not supported")
 
         frame_url = self.__upload_frame(frame_data)
-        headers = {"content-type": "application/json"}
-        body = {"instances": [{"input_1": frame_list}]}
-        response = requests.post(model_server_url, data=json.dumps(body), headers=headers)
-        response.raise_for_status()
-        prediction = response.json()['predictions'][0]
+        prediction = self.__predict_single_frame(frame_list, model_server_url)
         del frame_list
         del frame_data
-        return np.argmax(prediction), frame_url
+        return prediction, frame_url
 
     def __cut_frame_upload_predict(self, model_type=None):
         """ 基于opencv的切割图片并上传bfs, 每秒保存7帧，对于人的视觉来看足够
@@ -396,9 +439,10 @@ class DeepVideoIndex(object):
                 predict_result, frame_name = predict_async_task.result(timeout=20)
             except Exception as err:
                 self.__logger.error(err)
-                self.__logger.error(traceback.print_exc())
+                # self.__logger.error(traceback.print_exc())
                 continue
             self.frames_info_dict[frame_name] = [time_step, predict_result]
+        self.__session.close()
 
     def get_first_frame_time(self):
         """ 播放器首帧时间

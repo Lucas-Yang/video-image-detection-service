@@ -1,6 +1,7 @@
 """
 celery异步任务执行
 """
+import json
 import os
 from celery import Celery
 from ffmpy import FFmpeg
@@ -16,7 +17,8 @@ logger = LogManager('server.log').logger
 brokers = 'redis://0.0.0.0:6379/3'
 backend = 'redis://0.0.0.0:6379/4'
 
-celery_app = Celery('player-tasks', broker=brokers, backend=backend)
+celery_app = Celery('player-tasks')
+celery_app.config_from_object('config')
 
 
 @celery_app.task
@@ -45,6 +47,7 @@ def cv_index_task(cv_info_dict):
         cv_info_dict["temp_video_path"] = cfr_video_path
         model_handler = PlayerIndex(cv_info_dict=cv_info_dict)
         cv_result_index = model_handler.get_cv_index()
+        cv_result_index = json.loads(json.dumps(cv_result_index))
         os.remove(cv_info_dict.get("temp_video_path"))  # 删除临时视频文件
         os.remove(file_path)  # 删除临时固定帧率源视频
         logger.info(cv_result_index)
@@ -69,6 +72,7 @@ def video_quality_task(video_quality_dict):
         print(video_quality_dict)
         model_handler = PlayerIndex(video_quality_dict=video_quality_dict)
         video_quality_result_index = model_handler.get_video_quality()
+        video_quality_result_index = json.loads(json.dumps(video_quality_result_index))
         os.remove(video_quality_dict.get("src_video"))  # 删除临时视频文件
         os.remove(video_quality_dict.get("target_video"))  # 删除临时固定帧率源视频
         logger.info(video_quality_result_index)
