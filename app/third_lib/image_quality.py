@@ -10,6 +10,7 @@ from cnstd import CnStd
 from PIL import Image
 import time
 
+
 # img_std = CnStd()
 # img_ocr = CnOcr()
 
@@ -129,12 +130,12 @@ class ImageQualityIndexGenerator(object):
         """ 花屏检测
         :return:
         """
-        img_gray = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2GRAY)
-        img_laplace = self.__laplace_image(img_gray)
+        img = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2GRAY)
+        img_laplace = self.__laplace_image(img)
         img = cv2.cvtColor(img_laplace, cv2.COLOR_GRAY2RGB)
         image = Image.fromarray(img)  # 先转格式为Image 为了统一输入图像尺寸
         predict_image = image.resize((90, 160), Image.NEAREST)
-        img = numpy.asarray(predict_image)
+        img = numpy.asarray(predict_image).astype(float)
         img_list = img.tolist()
         request_url = self.__blurred_frame_check_server_url
         predict_result = self.__access_model_server(img_list, request_url)
