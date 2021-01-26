@@ -10,6 +10,7 @@ import time
 import threading
 from jsonschema import validate
 from pymongo import MongoClient
+from app.data import VideoQualityItem
 
 MONGO_URL = 'mongodb://burytest:GbnO35lpzAyjkPqSXQTiHwLuDs2r4gcR@172.22.34.102:3301/test' \
             '?authSource=burytest&replicaSet=bapi&readPreference=primary&appname=MongoDB%2' \
@@ -175,6 +176,26 @@ class FormatChecker(object):
             return False
         return True
 
+    def video_index_cv_check(self, index_types, file):
+        """ fastapi upload接口参数校验
+        :param index_types:
+        :param file:
+        :return:
+        """
+        for index_type in index_types:
+            if index_type not in VideoQualityItem.__members__:
+                raise Exception("{} is wrong, plz make sure item in {}".
+                                format(index_type,
+                                       [index_type for index_type, _ in VideoQualityItem.__members__.items()]
+                                       )
+                                )
+            else:
+                continue
+        if file.content_type != 'video/mp4':
+            raise Exception("input error, {} is not a video file".format(file.filename))
+        else:
+            return True
+
     def ssim_index_checker(self, request):
         """ 相似性计算文档
         :param request:
@@ -192,6 +213,16 @@ class FormatChecker(object):
             return False
         return True
 
+    def api_ssim_index_checker(self, file):
+        """
+        :param file:
+        :return:
+        """
+        if file.content_type != 'video/mp4':
+            raise Exception("input error, {} is not a video file".format(file.filename))
+        else:
+            return True
+
     def image_white_detection_checker(self, request_body):
         """ 图像检测-校验
         :param request_body:
@@ -200,6 +231,19 @@ class FormatChecker(object):
         try:
             if request_body.files['file'].filename.split('.')[-1] != "png" and \
                     request_body.files['file'].filename.split('.')[-1] != "jpg":
+                raise Exception("input file is not png/jpg")
+        except BaseException as err:
+            self.__logger.error(err)
+            return False
+        return True
+
+    def api_image_white_detection_checker(self, file_image):
+        """ 图像检测-校验
+        :param file_image:
+        :return:
+        """
+        try:
+            if 'image' not in file_image.content_type:
                 raise Exception("input file is not png/jpg")
         except BaseException as err:
             self.__logger.error(err)

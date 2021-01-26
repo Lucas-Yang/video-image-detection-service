@@ -31,9 +31,9 @@ class ImageQualityIndexGenerator(object):
         """
         :return:
         """
-        in_memory_file = io.BytesIO()
-        image_file.save(in_memory_file)
-        img = numpy.fromstring(in_memory_file.getvalue(), numpy.uint8)
+        # in_memory_file = io.BytesIO()
+        # image_file.save(in_memory_file)
+        img = numpy.frombuffer(image_file, dtype=numpy.uint8)
         img = cv2.imdecode(img, 1)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return img
