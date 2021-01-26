@@ -1,5 +1,9 @@
 # /usr/bin/env python
 # -*- coding: utf-8 -*-
+
+"""
+flask 接口启动
+"""
 from flask import Flask
 from app.controller import player_app, image_app
 
