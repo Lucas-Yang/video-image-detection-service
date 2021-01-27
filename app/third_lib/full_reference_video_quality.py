@@ -10,7 +10,7 @@ from skimage.metrics import structural_similarity as compare_ssim
 class VideoSSIM(object):
     """结构相似性评估类
     """
-    def __init__(self, src_video, target_video):
+    def __init__(self, src_video=None, target_video=None):
         self.src_video = src_video
         self.target_video = target_video
 
