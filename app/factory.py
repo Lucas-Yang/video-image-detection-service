@@ -156,7 +156,7 @@ class FormatChecker(object):
                         "type": "string",
                         "enum": ["FIRSTFRAME", "STARTAPP", "BLACKFRAME", "BLURREDFRAME", "FREEZEFRAME",
                                  "STARTAPPYOUKU", "STARTAPPIXIGUA", "STARTAPPTENCENT", "STARTAPPIQIYI",
-                                 "STARTAPPDOUYIN"
+                                 "STARTAPPDOUYIN", "STARTAPPCOMIC"
                                  ]
                     }
                 }

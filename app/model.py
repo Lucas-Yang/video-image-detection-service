@@ -100,7 +100,8 @@ class PlayerIndex(object):
                                 ModelType.STARTAPPIXIGUA.name,
                                 ModelType.STARTAPPTENCENT.name,
                                 ModelType.STARTAPPYOUKU.name,
-                                ModelType.STARTAPPDOUYIN.name
+                                ModelType.STARTAPPDOUYIN.name,
+                                ModelType.STARTAPPCOMIC.name
                                 ):
                 start_app_time, cls_results_dict = deep_index_handler.get_app_start_time(index_type)
             else:
