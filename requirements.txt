@@ -82,7 +82,6 @@ sentry-sdk==0.19.5
 Shapely==1.7.1
 simplejson==3.17.2
 six==1.15.0
-stagesepx==0.14.1
 tensorboardX==2.1
 termcolor==1.1.0
 threadpoolctl==2.1.0
