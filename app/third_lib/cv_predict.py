@@ -265,7 +265,7 @@ class DeepVideoIndex(object):
         self.__start_app_youku_server_url = "http://172.22.119.82:8501/v1/models/start_app_youku_model:predict"
         self.__start_app_ixigua_server_url = "http://172.22.119.82:8501/v1/models/start_app_ixigua_model:predict"
         self.__start_app_douyin_server_url = "http://172.22.119.82:8501/v1/models/start_app_douyin_model:predict"
-        self.__start_app_comic_server_url = "http://172.22.119.82:8501/v1/models/start_app_douyin_model:predict"
+        self.__start_app_comic_server_url = "http://172.22.119.82:8501/v1/models/start_app_comic_model:predict"
 
         self.__blurred_screen_server_url = ""
         self.__black_screen_server_url = ""
