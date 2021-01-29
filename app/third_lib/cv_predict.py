@@ -426,7 +426,10 @@ class DeepVideoIndex(object):
                     frame_byte = Image.fromarray(np.uint8(buf)).tobytes()  # 上传bfs数据格式
 
                     image = np.asarray(predict_image)
-                    frame_list = (image / 255).tolist()  # 模型预测数据格式
+                    if model_type == ModelType.STARTAPPCOMIC:
+                        frame_list = image.tolist()  # 模型预测数据格式
+                    else:
+                        frame_list = (image / 255).tolist()
                     try:
                         predict_async_task = self.__upload_frame_and_cls(frame_list, frame_byte, model_type)
                         predict_async_tasks[predict_async_task] = count * per_frame_time
