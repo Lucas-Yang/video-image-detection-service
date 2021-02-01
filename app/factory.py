@@ -191,7 +191,8 @@ class FormatChecker(object):
                                 )
             else:
                 continue
-        if file.content_type != 'video/mp4':
+        if not (file.filename.endswith('.mp4') or file.filename.endswith('.MP4')):
+            self.__logger.error(file.content_type)
             raise Exception("input error, {} is not a video file".format(file.filename))
         else:
             return True
