@@ -159,15 +159,18 @@ class ImageIndex(object):
 
     def blurred_frame_detection(self):
         """花屏检测
+        0: 马赛克
+        1: 扭曲
+        2: 正常
         :return:
         """
         predict_result = self.image_index_hander.get_if_blurred_frame()
         if predict_result == -1:
             return predict_result
-        elif predict_result == 0:
-            return True
-        else:
+        elif predict_result == 2:
             return False
+        else:
+            return True
 
     def frame_ocr(self):
         """ 图像ocr
