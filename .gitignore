@@ -12,6 +12,7 @@ venv
 data
 dump.rdb
 model
+temp
 
 # My configurations:
 db.ini

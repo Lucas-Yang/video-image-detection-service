@@ -1,8 +1,14 @@
 import os
 import cv2
-import time
+
 import numpy as np
 import matplotlib.pyplot as plt
+
+from scipy.ndimage import variance
+from skimage import io
+from skimage.color import rgb2gray
+from skimage.filters import laplace
+from skimage.transform import resize
 
 
 class BlurredImageChecker(object):
@@ -37,7 +43,6 @@ class BlurredImageChecker(object):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         plt.imshow(img)
         plt.show()
-        # time.sleep(10)
         print("#" * 30)
         gaussian_image = cv2.GaussianBlur(img, ksize=(5, 5), sigmaX=0, sigmaY=0)
         # img = cv2.cvtColor(gaussian_image, cv2.COLOR_BGR2RGB)
@@ -63,7 +68,62 @@ class BlurredImageChecker(object):
         plt.imshow(gaussian_image, cmap='gray')
         plt.show()
 
+    @staticmethod
+    def cut__avg_frame(file_name):
+        """
+        :return:
+        """
+        img = cv2.imread(file_name, cv2.IMREAD_GRAYSCALE)
+        hight, width = img.shape
+        print(hight, width)
+        cropped1 = img[0:hight//2, 0:width//2]
+        cropped2 = img[hight//2:hight, 0:width//2]
+        cropped3 = img[0:hight//2, width//2:width]
+        cropped4 = img[hight//2:hight, width//2:width]
+        cv2.imwrite('cropped1.png', cropped1)
+        cv2.imwrite('cropped2.png', cropped2)
+        cv2.imwrite('cropped3.png', cropped3)
+        cv2.imwrite('cropped4.png', cropped4)
+
+    def img_var(self, dir_path1, dir_path2=None):
+        """
+        :return:
+        """
+        blur_image_list_x = []
+        blur_image_list_y = []
+
+        path2_image_list_x = []
+        path2_image_list_y = []
+        for file_name in os.listdir(dir_path1):
+            file_path = os.path.join(dir_path1, file_name)
+            img = io.imread(file_path)
+            # img = resize(img, (800, 500))
+            img = rgb2gray(img)
+            edge_laplace = laplace(img, ksize=6)
+            blur_image_list_x.append(variance(edge_laplace))
+            blur_image_list_y.append(np.amax(edge_laplace))
+            print(f"Variance: {variance(edge_laplace)}", f"Maximum : {np.amax(edge_laplace)}", file_path)
+
+        for file_name in os.listdir(dir_path2):
+            file_path = os.path.join(dir_path2, file_name)
+            img = io.imread(file_path)
+            # img = resize(img, (800, 500))
+            img = rgb2gray(img)
+            edge_laplace = laplace(img, ksize=6)
+
+            path2_image_list_x.append(variance(edge_laplace))
+            path2_image_list_y.append(np.amax(edge_laplace))
+            print(f"Variance: {variance(edge_laplace)}", f"Maximum : {np.amax(edge_laplace)}", file_path)
+
+        x = np.array(blur_image_list_x)
+        y = np.array(blur_image_list_y)
+        plt.scatter(x, y)
+
+        plt.scatter(path2_image_list_x, path2_image_list_y)
+
+        plt.show()
+
 
 if __name__ == '__main__':
-    blurred_handler = BlurredImageChecker()
-    blurred_handler.white_frame_detect('./1.png')
+    handler = BlurredImageChecker()
+    handler.img_var('./temp/temp1/普通', './temp/temp1/花屏')

@@ -11,10 +11,6 @@ from PIL import Image
 import time
 
 
-# img_std = CnStd()
-# img_ocr = CnOcr()
-
-
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
     """
@@ -22,7 +18,7 @@ class ImageQualityIndexGenerator(object):
     def __init__(self, image_file):
         """
         """
-        self.__blurred_frame_check_server_url = "http://172.22.119.82:8501/v1/models/best_blurred_screen_model:predict"
+        self.__blurred_frame_check_server_url = "http://172.22.119.82:8601/v1/models/blurred_screen_model:predict"
         self.image_data = self.__bytesIO2img(image_file)
         # self.__img_std = CnStd()
         # self.__img_ocr = CnOcr()
@@ -134,11 +130,12 @@ class ImageQualityIndexGenerator(object):
         img_laplace = self.__laplace_image(img)
         img = cv2.cvtColor(img_laplace, cv2.COLOR_GRAY2RGB)
         image = Image.fromarray(img)  # 先转格式为Image 为了统一输入图像尺寸
-        predict_image = image.resize((90, 160), Image.NEAREST)
+        predict_image = image.resize((960, 448), Image.NEAREST)
         img = numpy.asarray(predict_image).astype(float)
         img_list = img.tolist()
         request_url = self.__blurred_frame_check_server_url
         predict_result = self.__access_model_server(img_list, request_url)
+        # print(predict_result)
         if predict_result == -1:
             return -1
         else:
