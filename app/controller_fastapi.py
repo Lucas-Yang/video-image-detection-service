@@ -209,3 +209,26 @@ async def blurred_frame_detect(file: UploadFile = File(...)):
         return {
             "code": -1,
             "message": "input error"}
+
+
+@image_app.post('/quality/horizontal-frame-detect')
+async def horizontal_frame_detect(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_white_detection_checker(file):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.frame_horizontal_portrait_detect()
+        if result == -1:
+            return {
+                "code": -2,
+                "message": "access model server error"
+            }
+        else:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": result}
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
