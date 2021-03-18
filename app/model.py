@@ -144,14 +144,14 @@ class ImageIndex(object):
     """
     def __init__(self, quality_file):
         self.quality_file = quality_file
-        self.image_index_hander = ImageQualityIndexGenerator(self.quality_file)
+        self.image_index_handler = ImageQualityIndexGenerator(self.quality_file)
         self.__logger = LogManager("server.log").logger
 
     def black_white_frame_detection(self):
         """黑白屏检测
         :return:
         """
-        gaussian_score = self.image_index_hander.get_black_white_frame_score()
+        gaussian_score = self.image_index_handler.get_black_white_frame_score()
         if gaussian_score < 10:
             return True
         else:
@@ -164,7 +164,7 @@ class ImageIndex(object):
         2: 正常
         :return:
         """
-        predict_result = self.image_index_hander.get_if_blurred_frame()
+        predict_result = self.image_index_handler.get_if_blurred_frame()
         if predict_result == -1:
             return predict_result
         elif predict_result == 2:
@@ -176,9 +176,17 @@ class ImageIndex(object):
         """ 图像ocr
         :return:
         """
-        ocr_result_list = self.image_index_hander.get_ocr_result_list()
+        ocr_result_list = self.image_index_handler.get_ocr_result_list()
         self.__logger.info("ocr:{}".format(ocr_result_list))
         return ocr_result_list
+
+    def frame_horizontal_portrait_detect(self):
+        """ 视频帧横竖屏判断(是否是拼接视频)
+        :return:
+        """
+        detect_res = self.image_index_handler.get_horizontal_portrait_frame_size()
+        self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
+        return detect_res
 
 
 if __name__ == '__main__':

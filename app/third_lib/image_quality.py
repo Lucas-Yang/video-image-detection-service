@@ -11,6 +11,45 @@ from PIL import Image
 import time
 
 
+class ImageSplitJoint(object):
+    """图像帧拼接识别类
+    """
+    def __init__(self, img: numpy.ndarray = None):
+        """
+        :param img: 输入图像
+        """
+        self.img = img
+        self.result_line_list = []
+
+    def __get_img_info(self):
+        """获取图像的长宽信息
+        :return: (height, width)
+        """
+        img_shape = self.img.shape
+        return img_shape[0], img_shape[1]
+
+    def line_detect(self):
+        """ 拼接线检测
+        :return:
+        """
+        img_gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        canny = cv2.Canny(img_gray, 10, 400)
+        lines = cv2.HoughLinesP(canny, 1, 1.0 * numpy.pi / 180, 200, minLineLength=200, maxLineGap=300)
+        if lines is not None:
+            for (x1, y1, x2, y2) in lines[:, 0]:
+                if y1 == y2:
+                    self.result_line_list.append(((x1, y1), (x2, y2)))
+                else:
+                    continue
+        else:
+            pass
+
+        if len(self.result_line_list) > 0:
+            return True
+        else:
+            return False
+
+
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
     """
@@ -20,8 +59,6 @@ class ImageQualityIndexGenerator(object):
         """
         self.__blurred_frame_check_server_url = "http://172.22.119.82:8601/v1/models/blurred_screen_model:predict"
         self.image_data = self.__bytesIO2img(image_file)
-        # self.__img_std = CnStd()
-        # self.__img_ocr = CnOcr()
 
     def __bytesIO2img(self, image_file):
         """
@@ -93,6 +130,13 @@ class ImageQualityIndexGenerator(object):
                                           sigmaX=0,
                                           sigmaY=0)
         return gaussian_image.var()
+
+    def get_horizontal_portrait_frame_size(self):
+        """ 判断横竖屏，并获取横竖屏比例
+        :return:
+        """
+        image_split_joint_handler = ImageSplitJoint(self.image_data)
+        return image_split_joint_handler.line_detect()
 
     def get_ocr_result_list(self):
         """ 图像ocr
