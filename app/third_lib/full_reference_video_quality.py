@@ -80,11 +80,60 @@ class VideoSSIM(object):
         :return:
         """
         stream1 = ffmpeg.input(self.src_video)
+        print(stream1)
         stream2 = ffmpeg.input(self.target_video)
+        print(stream2)
         stream = ffmpeg.filter_([stream1, stream2], 'ssim')
+        print(stream)
         stream = ffmpeg.output(stream, 'pipe:', format='null')
+        print(stream)
         out, line_info = stream.run(quiet=True, capture_stdout=True)
+        print(line_info)
         match_objects_start = re.match(".* All:(.*) .*", bytes.decode(line_info).strip().split('\n')[-1], re.M | re.I)
+        if match_objects_start:
+            video_ssim_score = float(match_objects_start.group(1))
+        else:
+            video_ssim_score = 0
+        return video_ssim_score
+
+
+    def get_video_ffmpeg_psnr_index(self):
+        """ 根据ffmpeg计算ssim
+        :return:
+        """
+        stream1 = ffmpeg.input(self.src_video)
+        print(stream1)
+        stream2 = ffmpeg.input(self.target_video)
+        print(stream2)
+        stream = ffmpeg.filter_([stream1, stream2], 'psnr')
+        print(stream)
+        stream = ffmpeg.output(stream, 'pipe:', format='null')
+        print(stream)
+        out, line_info = stream.run(quiet=True, capture_stdout=True)
+        print(line_info)
+        match_objects_start = re.match(".* average:(.*) min.*", bytes.decode(line_info).strip().split('\n')[-1], re.M | re.I)
+        if match_objects_start:
+            video_ssim_score = float(match_objects_start.group(1))
+        else:
+            video_ssim_score = 0
+        return video_ssim_score
+
+
+    def get_video_ffmpeg_vmaf_index(self):
+        """ 根据ffmpeg计算ssim
+        :return:
+        """
+        stream1 = ffmpeg.input(self.src_video)
+        print(stream1)
+        stream2 = ffmpeg.input(self.target_video)
+        print(stream2)
+        stream = ffmpeg.filter_([stream1, stream2], 'libvmaf')
+        print(stream)
+        stream = ffmpeg.output(stream, 'pipe:', format='null')
+        print(stream)
+        out, line_info = stream.run(quiet=True, capture_stdout=True)
+        print(line_info)
+        match_objects_start = re.match(".* average:(.*) min.*", bytes.decode(line_info).strip().split('\n')[-1], re.M | re.I)
         if match_objects_start:
             video_ssim_score = float(match_objects_start.group(1))
         else:
@@ -101,6 +150,12 @@ class VideoSSIM(object):
 
 
 if __name__ == "__main__":
-    ssim_handler = VideoSSIM("/Users/luoyadong/Desktop/studio_video_1605840496434.mp4",
-                             "/Users/luoyadong/Desktop/studio_video_16058404964343.mp4")
-    print(ssim_handler.get_video_ssim_index())
+    ssim_handler = VideoSSIM("/Users/bilibili/Desktop/startapp16.mp4",
+                             "/Users/bilibili/Desktop/00301f6bab67b38dbdb3f43ba4356446dbd83447.mp4")
+    # print(ssim_handler.get_video_ssim_index())
+
+    print(ssim_handler.get_video_ffmpeg_ssim_index())
+    print()
+    print(ssim_handler.get_video_ffmpeg_psnr_index())
+    print()
+    print(ssim_handler.get_video_ffmpeg_vmaf_index())

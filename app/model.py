@@ -3,7 +3,7 @@ dao层
 """
 from app.third_lib.dot_predict import DotVideoIndex
 from app.third_lib.image_quality import ImageQualityIndexGenerator
-from app.third_lib.cv_predict import DeepVideoIndex, ModelType
+from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDetector
 from app.third_lib.full_reference_video_quality import VideoSSIM
 from app.factory import LogManager, MyMongoClient
 
@@ -15,11 +15,13 @@ class PlayerIndex(object):
     def __init__(self,
                  dot_info_dict: dict = None,
                  cv_info_dict: dict = None,
-                 video_quality_dict: dict = None
+                 video_quality_dict: dict = None,
+                 silence_info_dict: dict = None
                  ):
         self.dot_info_dict = dot_info_dict
         self.cv_info_dict = cv_info_dict
         self.video_quality_dict = video_quality_dict
+        self.silence_info_dict = silence_info_dict
         self.__logger = LogManager("server.log").logger
         self.__db_handler = MyMongoClient()
 
@@ -137,6 +139,16 @@ class PlayerIndex(object):
         video_quality_handler = VideoSSIM(src_video, target_video)
         ssim_score = video_quality_handler.get_video_ffmpeg_ssim_index()
         return {"ssim_score": ssim_score}
+
+    def get_silence_index(self):
+        """获取音视频静音时间戳
+        """
+        video_path = self.silence_info_dict.get("video_path")
+        # start_time = self.silence_info_dict.get("start_time")
+        # end_time = self.silence_info_dict.get("end_time")
+        silence_index_handler = VideoSilenceDetector(video_path=video_path,)
+        silence_timestamps = silence_index_handler.get_silent_times()
+        return {"silence_timestamps": silence_timestamps}
 
 
 class ImageIndex(object):

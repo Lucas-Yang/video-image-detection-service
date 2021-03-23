@@ -11,6 +11,8 @@ import re
 import requests
 import queue
 import traceback
+import subprocess
+import sys
 
 from collections import OrderedDict
 import numpy as np
@@ -524,10 +526,61 @@ class DeepVideoIndex(object):
         return start_app_time, cls_results_dict
 
 
+class VideoSilenceDetector(object):
+    """视(音)频静音探测
+    """
+    DEFAULT_DURATION = 0.1
+    DEFAULT_THRESHOLD = -60
+
+    silence_start_re = re.compile(' silence_start: (?P<start>[-,0-9]+(\.?[0-9]*))$')
+    silence_end_re = re.compile(' silence_end: (?P<end>[0-9]+(\.?[0-9]*)) ')
+
+    def __init__(self, video_path=None,
+                 silence_threshold=DEFAULT_THRESHOLD,
+                 silence_duration=DEFAULT_DURATION,
+                 start_time=None, end_time=None):
+        self.video_path = video_path
+        self.silence_threshold = silence_threshold
+        self.silence_duration = silence_duration
+        self.start_time = start_time
+        self.end_time = end_time
+
+    def get_silent_times(self):
+        p = subprocess.Popen((ffmpeg
+                              .input(self.video_path, )
+                              .filter('silencedetect', n='{}dB'.format(self.silence_threshold), d=self.silence_duration)
+                              .output('-', format='null')
+                              .compile()
+                              ) + ['-nostats'],
+                             stderr=subprocess.PIPE)
+        output = p.communicate()[1].decode('utf-8')
+        if p.returncode != 0:
+            sys.stderr.write(output)
+            sys.exit(1)
+        lines = output.splitlines()
+
+        silence_start = []
+        silence_end = []
+        for line in lines:
+            silence_start_match = VideoSilenceDetector.silence_start_re.search(line)
+            silence_end_match = VideoSilenceDetector.silence_end_re.search(line)
+            if silence_start_match:
+                silence_start_tmp = float(silence_start_match.group('start'))
+                # 若出现silence_start或silence_end小于0，则需要将处理下
+                silence_start.append(0 if silence_start_tmp < 0. else silence_start_tmp)
+            elif silence_end_match:
+                silence_end_tmp = float(silence_end_match.group('end'))
+                silence_end.append(0 if silence_end_tmp < 0. else silence_end_tmp)
+
+        return list(zip(silence_start, silence_end))
+
+
 if __name__ == '__main__':
-    cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/video.mp4'}
-    deep_index_handler = DeepVideoIndex(cv_info)
-    print(json.dumps(deep_index_handler.get_app_start_time("STARTAPPYOUKU")))
+    # cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/video.mp4'}
+    # deep_index_handler = DeepVideoIndex(cv_info)
+    # print(json.dumps(deep_index_handler.get_app_start_time("STARTAPPYOUKU")))
     # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
     # freeze_frame_list = deep_index_handler.get_freeze_frame_info()
     # black_frame_list = deep_index_handler.get_black_frame_info()
+    videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/歪嘴战神 __搞笑.mp3")
+    print(videosilence.get_silent_times())

@@ -116,6 +116,31 @@ def get_cv_index():
             "message": "input error, make sure task id is correct"}), content_type='application/json')
 
 
+@player_app.route('/index/silence', methods=['POST'])
+def get_silence_index():
+    if format_handler.silence_index_checker(request):
+        file = request.files['file']
+        base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
+        if not os.path.exists(base_path):
+            os.mkdir(base_path)
+        file_path = os.path.join(base_path, str(time.time()) + file.filename)
+        file.save(file_path)
+        model_handler = PlayerIndex(silence_info_dict={"video_path": file_path})
+        silence_result_index = model_handler.get_silence_index()
+        os.remove(file_path)
+        return Response(json.dumps({
+            "code": 0,
+            "message": "Success",
+            "data": silence_result_index
+        }), content_type='application/json'
+        )
+    else:
+        return Response(json.dumps({
+            "code": -1,
+            "message": "input error"}), content_type='application/json')
+
+
+
 @player_app.route('video/ssim', methods=['POST'])
 def get_ssim_index():
     if format_handler.ssim_index_checker(request):

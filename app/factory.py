@@ -214,6 +214,20 @@ class FormatChecker(object):
             return False
         return True
 
+    def silence_index_checker(self, request):
+        """ 静音文件格式检查
+        :param request:
+        :return:
+        """
+        allowed_formats = ('mp4', 'MP4', 'mkv', 'MKV', 'mp3', 'MP3', 'aac', 'AAC')
+        try:
+            if request.files['file'].filename.split('.')[-1] not in allowed_formats:
+                raise Exception("the format of the input file is not accepted")
+        except BaseException as err:
+            self.__logger.error(err)
+            return False
+        return True
+
     def api_ssim_index_checker(self, file):
         """
         :param file:
