@@ -13,5 +13,5 @@ app.include_router(player_app, prefix="/player")
 app.include_router(image_app, prefix="/image")
 
 if __name__ == '__main__':
-    # uvicorn.run('main:app', host="0.0.0.0", port=8090, reload=True, log_level="debug")
-    uvicorn.run(app=app, host="127.0.0.1", port=8091, log_level="debug")
+    uvicorn.run('main:app', host="0.0.0.0", port=8090, reload=True, log_level="debug")
+    # uvicorn.run(app=app, host="127.0.0.1", port=8091, log_level="debug")

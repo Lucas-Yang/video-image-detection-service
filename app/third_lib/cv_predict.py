@@ -566,7 +566,7 @@ class VideoSilenceDetector(object):
             silence_end_match = VideoSilenceDetector.silence_end_re.search(line)
             if silence_start_match:
                 silence_start_tmp = float(silence_start_match.group('start'))
-                # 若出现silence_start或silence_end小于0，则需要将处理下
+                # 若出现silence_start或silence_end小于0，则需要另外处理下
                 silence_start.append(0 if silence_start_tmp < 0. else silence_start_tmp)
             elif silence_end_match:
                 silence_end_tmp = float(silence_end_match.group('end'))
