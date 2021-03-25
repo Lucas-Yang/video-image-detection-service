@@ -142,6 +142,38 @@ async def get_ssim_index(file_src: UploadFile = File(...),
         return {"code": -1, "message": str(err)}
 
 
+@player_app.post('/index/silence')
+async def get_silence_index(file_src: UploadFile = File(...)):
+    format_handler = FormatChecker()
+    if format_handler.silence_index_checker(file_src.filename):
+        try:
+            file = await file_src.read()
+            base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
+            if not os.path.exists(base_path):
+                os.mkdir(base_path)
+            file_path = os.path.join(base_path, str(time.time()) + file_src.filename)
+            with open(file_path, "wb") as f:
+                f.write(file)
+            model_handler = PlayerIndex(silence_info_dict={"video_path": file_path})
+            silence_result_index = model_handler.get_silence_index()
+            os.remove(file_path)
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": silence_result_index
+            }
+        except Exception as err:
+            return {
+                "code": -2,
+                "message": str(err)
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"
+        }
+
+
 @image_app.post('/quality/white-detect')
 async def judge_white_frame(file: UploadFile = File(...)):
     res_src = await file.read()
