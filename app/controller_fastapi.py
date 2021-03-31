@@ -8,7 +8,6 @@ import os
 import time
 from fastapi import APIRouter, FastAPI, File, UploadFile
 
-
 from celery.result import AsyncResult
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex, ImageIndex
@@ -16,7 +15,7 @@ from app.tasks import celery_app, cv_index_task
 from app.data import DotItem
 
 player_app = APIRouter()  # 视频类接口
-image_app = APIRouter()   # 图像类接口
+image_app = APIRouter()  # 图像类接口
 
 format_handler = FormatChecker()
 logger = LogManager("server.log").logger
@@ -144,7 +143,6 @@ async def get_ssim_index(file_src: UploadFile = File(...),
 
 @player_app.post('/index/silence')
 async def get_silence_index(file_src: UploadFile = File(...)):
-    format_handler = FormatChecker()
     if format_handler.silence_index_checker(file_src.filename):
         try:
             file = await file_src.read()
@@ -210,10 +208,10 @@ async def frame_ocr(file: UploadFile = File(...)):
         image_handler = ImageIndex(res_src)
         ocr_result_list = image_handler.frame_ocr()
         return {
-                "code": 0,
-                "message": "Success",
-                "data": {"ocr_result": ocr_result_list}
-            }
+            "code": 0,
+            "message": "Success",
+            "data": {"ocr_result": ocr_result_list}
+        }
     else:
         return {
             "code": -1,

@@ -230,7 +230,7 @@ class PlayerBlackScreenWatcher(object):
             out, err = (
                 ffmpeg
                     .input(temp_video_path)
-                    .filter('blackdetect', d=0.5, pic_th=0.95)
+                    .filter('blackdetect', d=0.5, pic_th=0.999)
                     .output('pipe:', format='null')
                     .run(quiet=True, capture_stdout=True)
             )
