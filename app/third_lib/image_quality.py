@@ -46,7 +46,7 @@ class ImageSplitJoint(object):
         else:
             pass
 
-        cv2.imwrite("tes1.jpg", self.img)
+        # cv2.imwrite("tes1.jpg", self.img)
         if len(self.result_line_list) > 0:
             return True
         else:
