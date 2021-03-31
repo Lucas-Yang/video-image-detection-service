@@ -18,7 +18,7 @@ class ImageSplitJoint(object):
         """
         :param img: 输入图像
         """
-        self.img = img
+        self.img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.result_line_list = []
 
     def __get_img_info(self):
@@ -38,12 +38,15 @@ class ImageSplitJoint(object):
         if lines is not None:
             for (x1, y1, x2, y2) in lines[:, 0]:
                 if y1 == y2:
+                    print(x1, y1, ";", x2, y2)
                     self.result_line_list.append(((x1, y1), (x2, y2)))
+                    cv2.line(self.img, (x1, y1), (x2, y2), (0, 255, 0), 3)  # 画直线
                 else:
                     continue
         else:
             pass
 
+        cv2.imwrite("tes1.jpg", self.img)
         if len(self.result_line_list) > 0:
             return True
         else:
