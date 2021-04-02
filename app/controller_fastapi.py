@@ -262,3 +262,26 @@ async def horizontal_frame_detect(file: UploadFile = File(...)):
         return {
             "code": -1,
             "message": "input error"}
+
+
+@image_app.post('/quality/clarity-detect')
+async def clarity_detect(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_clarity_checker(file.filename):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.frame_clarity_detect()
+        if result == -1:
+            return {
+                "code": -2,
+                "message": "access model server error"
+            }
+        else:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": result}
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}

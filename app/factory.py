@@ -265,6 +265,17 @@ class FormatChecker(object):
             return False
         return True
 
+    def api_image_clarity_checker(self, filename):
+        """图像清晰度检测-格式校验
+        """
+        allowed_formats = ('jpg', 'png', 'jpeg')
+        try:
+            if filename.split('.')[-1] not in allowed_formats:
+                raise Exception("the format of the input file is not accepted")
+        except BaseException as err:
+            self.__logger.error(err)
+            return False
+        return True
 
 class MyMongoClient(object):
     """mongo 操作类
