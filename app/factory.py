@@ -220,13 +220,7 @@ class FormatChecker(object):
         :return:
         """
         allowed_formats = ('mp4', 'MP4', 'mkv', 'MKV', 'mp3', 'MP3', 'aac', 'AAC', 'wav', 'WAV')
-        try:
-            if filename.split('.')[-1] not in allowed_formats:
-                raise Exception("the format of the input file is not accepted")
-        except BaseException as err:
-            self.__logger.error(err)
-            return False
-        return True
+        return self.format_check(filename, allowed_formats)
 
     def api_ssim_index_checker(self, file):
         """
@@ -269,6 +263,9 @@ class FormatChecker(object):
         """图像清晰度检测-格式校验
         """
         allowed_formats = ('jpg', 'png', 'jpeg')
+        return self.format_check(filename, allowed_formats)
+
+    def format_check(self, filename, allowed_formats):
         try:
             if filename.split('.')[-1] not in allowed_formats:
                 raise Exception("the format of the input file is not accepted")
