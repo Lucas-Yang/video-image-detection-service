@@ -230,7 +230,8 @@ class PlayerBlackScreenWatcher(object):
             out, err = (
                 ffmpeg
                     .input(temp_video_path)
-                    .filter('blackdetect', d=0.5, pic_th=0.999)
+                    # pix_th默认为0，10，指黑色像素阈值
+                    .filter('blackdetect', d=0.5, pic_th=0.999, pix_th=0.05)
                     .output('pipe:', format='null')
                     .run(quiet=True, capture_stdout=True)
             )
@@ -582,5 +583,6 @@ if __name__ == '__main__':
     # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
     # freeze_frame_list = deep_index_handler.get_freeze_frame_info()
     # black_frame_list = deep_index_handler.get_black_frame_info()
-    videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/歪嘴战神 __搞笑.mp3")
-    print(videosilence.get_silent_times())
+    # videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/歪嘴战神 __搞笑.mp3")
+    # print(videosilence.get_silent_times())
+    print(PlayerBlackScreenWatcher(video_info={'temp_video_path':'/Users/bilibili/Desktop/26899393.mp4'}).get_black_screen())
