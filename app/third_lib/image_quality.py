@@ -34,12 +34,12 @@ class ImageSplitJoint(object):
         """
         gray_img = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
         # 边缘检测
-        canny = cv2.Canny(gray_img, 100, 125)
+        canny = cv2.Canny(gray_img, 25, 50)
         # 获取宽
         width = gray_img.shape[1]
         # 直线检测
-        threshold = (int)(width * 0.7)
-        minLineLength = width * 0.7
+        threshold = (int)(width * 0.8)
+        minLineLength = width * 0.8
         maxLineGap = width * 0.1
         lines = cv2.HoughLinesP(canny, 1, numpy.pi / 180,
                                 threshold=threshold, minLineLength=minLineLength,
@@ -49,7 +49,6 @@ class ImageSplitJoint(object):
                 for x1, y1, x2, y2 in line:
                     if y1 == y2:
                         self.result_line_list.append(((x1, y1), (x2, y2)))
-                        cv2.line(self.img, (x1, y1), (x2, y2), (255, 0, 0), 5)
                     else:
                         continue
         else:
