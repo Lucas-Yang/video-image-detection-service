@@ -32,21 +32,28 @@ class ImageSplitJoint(object):
         """ 拼接线检测
         :return:
         """
-        img_gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
-        canny = cv2.Canny(img_gray, 10, 400)
-        lines = cv2.HoughLinesP(canny, 1, 1.0 * numpy.pi / 180, 200, minLineLength=200, maxLineGap=300)
+        gray_img = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        # 边缘检测
+        canny = cv2.Canny(gray_img, 25, 50)
+        # 获取宽
+        width = gray_img.shape[1]
+        # 直线检测
+        threshold = (int)(width * 0.8)
+        minLineLength = width * 0.8
+        maxLineGap = width * 0.1
+        lines = cv2.HoughLinesP(canny, 1, numpy.pi / 180,
+                                threshold=threshold, minLineLength=minLineLength,
+                                maxLineGap=maxLineGap)
         if lines is not None:
-            for (x1, y1, x2, y2) in lines[:, 0]:
-                if y1 == y2:
-                    print(x1, y1, ";", x2, y2)
-                    self.result_line_list.append(((x1, y1), (x2, y2)))
-                    cv2.line(self.img, (x1, y1), (x2, y2), (0, 255, 0), 3)  # 画直线
-                else:
-                    continue
+            for line in lines:
+                for x1, y1, x2, y2 in line:
+                    if y1 == y2:
+                        self.result_line_list.append(((x1, y1), (x2, y2)))
+                    else:
+                        continue
         else:
             pass
 
-        # cv2.imwrite("tes1.jpg", self.img)
         if len(self.result_line_list) > 0:
             return True
         else:
