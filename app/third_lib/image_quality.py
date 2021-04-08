@@ -32,36 +32,11 @@ class ImageSplitJoint(object):
         """ 拼接线检测
         :return:
         """
-        # img_gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
-        # canny = cv2.Canny(img_gray, 10, 400)
-        # lines = cv2.HoughLinesP(canny, 1, 1.0 * numpy.pi / 180, 200, minLineLength=200, maxLineGap=300)
-        # if lines is not None:
-        #     for (x1, y1, x2, y2) in lines[:, 0]:
-        #         if y1 == y2:
-        #             print(x1, y1, ";", x2, y2)
-        #             self.result_line_list.append(((x1, y1), (x2, y2)))
-        #             cv2.line(self.img, (x1, y1), (x2, y2), (0, 255, 0), 3)  # 画直线
-        #         else:
-        #             continue
-        # else:
-        #     pass
-        #
-        # # cv2.imwrite("tes1.jpg", self.img)
-        # if len(self.result_line_list) > 0:
-        #     return True
-        # else:
-        #     return False
-        result_line_list = []
-        img = cv2.imread(self.img)
-        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
+        gray_img = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
         # 边缘检测
         canny = cv2.Canny(gray_img, 100, 125)
-
         # 获取宽
         width = gray_img.shape[1]
-        # height = gray_img.shape[0]
-
         # 直线检测
         threshold = (int)(width * 0.7)
         minLineLength = width * 0.7
@@ -73,14 +48,14 @@ class ImageSplitJoint(object):
             for line in lines:
                 for x1, y1, x2, y2 in line:
                     if y1 == y2:
-                        result_line_list.append(((x1, y1), (x2, y2)))
-                        cv2.line(img, (x1, y1), (x2, y2), (255, 0, 0), 5)
+                        self.result_line_list.append(((x1, y1), (x2, y2)))
+                        cv2.line(self.img, (x1, y1), (x2, y2), (255, 0, 0), 5)
                     else:
                         continue
         else:
             pass
 
-        if len(result_line_list) > 0:
+        if len(self.result_line_list) > 0:
             return True
         else:
             return False
