@@ -572,8 +572,15 @@ class VideoSilenceDetector(object):
             elif silence_end_match:
                 silence_end_tmp = float(silence_end_match.group('end'))
                 silence_end.append(0 if silence_end_tmp < 0. else silence_end_tmp)
-
-        return list(zip(silence_start, silence_end))
+        res =[]
+        for start, end in zip(silence_start, silence_end):
+            silence_info = {
+                "silence_start": start,
+                "silence_end": end,
+                "silence_duration": end - start
+            }
+            res.append(silence_info)
+        return res
 
 
 if __name__ == '__main__':
@@ -583,6 +590,6 @@ if __name__ == '__main__':
     # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
     # freeze_frame_list = deep_index_handler.get_freeze_frame_info()
     # black_frame_list = deep_index_handler.get_black_frame_info()
-    # videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/歪嘴战神 __搞笑.mp3")
-    # print(videosilence.get_silent_times())
-    print(PlayerBlackScreenWatcher(video_info={'temp_video_path':'/Users/bilibili/Desktop/26899393.mp4'}).get_black_screen())
+    videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/歪嘴战神 __搞笑.mp3")
+    print(videosilence.get_silent_times())
+    # print(PlayerBlackScreenWatcher(video_info={'temp_video_path':'/Users/bilibili/Desktop/26899393.mp4'}).get_black_screen())

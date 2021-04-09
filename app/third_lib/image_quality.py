@@ -200,10 +200,7 @@ class ImageQualityIndexGenerator(object):
         """
         img2gray = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)
         imageVar = cv2.Laplacian(img2gray, cv2.CV_64F).var()
-        if imageVar:
-            return imageVar
-        else:
-            return -1
+        return imageVar
 
 
 if __name__ == '__main__':
