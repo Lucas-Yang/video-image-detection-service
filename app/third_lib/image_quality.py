@@ -38,12 +38,9 @@ class ImageSplitJoint(object):
         # 获取宽
         width = gray_img.shape[1]
         # 直线检测
-        threshold = (int)(width * 0.8)
-        minLineLength = width * 0.8
-        maxLineGap = width * 0.1
         lines = cv2.HoughLinesP(canny, 1, numpy.pi / 180,
-                                threshold=threshold, minLineLength=minLineLength,
-                                maxLineGap=maxLineGap)
+                                threshold=int(width * 0.5), minLineLength=width * 0.8,
+                                maxLineGap=width * 0.1)
         if lines is not None:
             for line in lines:
                 for x1, y1, x2, y2 in line:
