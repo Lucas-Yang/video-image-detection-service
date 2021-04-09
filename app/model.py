@@ -200,6 +200,14 @@ class ImageIndex(object):
         self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
         return detect_res
 
+    def frame_clarity_detect(self):
+        """视频帧清晰度检测
+        :return:
+        """
+        detect_res = self.image_index_handler.get_frame_clarity()
+        self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
+        return detect_res
+
 
 if __name__ == '__main__':
     import json
