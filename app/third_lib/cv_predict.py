@@ -2,24 +2,22 @@
 模型预测封装类
 通过调用该类获取视频播放质量指标
 """
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+import json
+import queue
+import re
+import subprocess
+import sys
+from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from enum import Enum
+from functools import wraps
 
 import cv2
 import ffmpeg
-import json
-import re
-import requests
-import queue
-import traceback
-import subprocess
-import sys
-
-from collections import OrderedDict
 import numpy as np
+import requests
 from PIL import Image
-from enum import Enum
 
-from functools import wraps
 from app.factory import LogManager, MyThread
 
 thread_executor = ThreadPoolExecutor(max_workers=10)
@@ -572,14 +570,18 @@ class VideoSilenceDetector(object):
             elif silence_end_match:
                 silence_end_tmp = float(silence_end_match.group('end'))
                 silence_end.append(0 if silence_end_tmp < 0. else silence_end_tmp)
-        res =[]
-        for start, end in zip(silence_start, silence_end):
-            silence_info = {
-                "silence_start": start,
-                "silence_end": end,
-                "silence_duration": end - start
-            }
-            res.append(silence_info)
+        res = []
+        all_duration = ffmpeg.probe(self.video_path)['format']['duration']  # 该视频的总时长
+        if len(silence_start) == 1:
+            silence_duration = silence_end[0] - silence_start[0]
+            # 由于视频的总时长和静音持续时长会存在误差，需要考虑
+            if 0.1 >= silence_duration - float(all_duration) >= -0.1:
+                silence_info = {
+                    "silence_start": silence_start[0],
+                    "silence_end": silence_end[0],
+                    "silence_duration": silence_duration
+                }
+                res.append(silence_info)
         return res
 
 
@@ -590,6 +592,7 @@ if __name__ == '__main__':
     # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
     # freeze_frame_list = deep_index_handler.get_freeze_frame_info()
     # black_frame_list = deep_index_handler.get_black_frame_info()
-    videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/歪嘴战神 __搞笑.mp3")
+    videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/这一不小心就当.mp4")
     print(videosilence.get_silent_times())
+    print(ffmpeg.probe("/Users/bilibili/Downloads/这一不小心就当.mp4")['format']['duration'])
     # print(PlayerBlackScreenWatcher(video_info={'temp_video_path':'/Users/bilibili/Desktop/26899393.mp4'}).get_black_screen())
