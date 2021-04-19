@@ -212,6 +212,7 @@ class ImageQualityIndexGenerator(object):
         """清晰度检测（NRSS）
         :return:
         """
+        self.image_data = cv2.resize(self.image_data, (1920, 1080), )  # 将图像resize成特定大小再判断
         self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)  # 灰度图
         gblur_image = cv2.GaussianBlur(self.image_data, (7, 7), 0)  # 高斯滤波
         G = self.__sobel(self.image_data)
