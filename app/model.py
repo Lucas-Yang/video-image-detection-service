@@ -1,11 +1,11 @@
 """
 dao层
 """
-from app.third_lib.dot_predict import DotVideoIndex
-from app.third_lib.image_quality import ImageQualityIndexGenerator
-from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDetector
-from app.third_lib.full_reference_video_quality import VideoSSIM
 from app.factory import LogManager, MyMongoClient
+from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDetector
+from app.third_lib.dot_predict import DotVideoIndex
+from app.third_lib.full_reference_video_quality import VideoSSIM
+from app.third_lib.image_quality import ImageQualityIndexGenerator
 
 
 class PlayerIndex(object):
@@ -146,7 +146,7 @@ class PlayerIndex(object):
         video_path = self.silence_info_dict.get("video_path")
         # start_time = self.silence_info_dict.get("start_time")
         # end_time = self.silence_info_dict.get("end_time")
-        silence_index_handler = VideoSilenceDetector(video_path=video_path,)
+        silence_index_handler = VideoSilenceDetector(video_path=video_path, )
         silence_timestamps = silence_index_handler.get_silent_times()
         return {"silence_timestamps": silence_timestamps}
 
@@ -154,6 +154,7 @@ class PlayerIndex(object):
 class ImageIndex(object):
     """ 图像质量数据获取与存储
     """
+
     def __init__(self, quality_file):
         self.quality_file = quality_file
         self.image_index_handler = ImageQualityIndexGenerator(self.quality_file)
@@ -201,10 +202,10 @@ class ImageIndex(object):
         return detect_res
 
     def frame_clarity_detect(self):
-        """视频帧清晰度检测
+        """视频帧清晰度检测（使用NRSS算法）
         :return:
         """
-        detect_res = self.image_index_handler.get_frame_clarity()
+        detect_res = self.image_index_handler.get_image_clarity()
         self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
         return detect_res
 
