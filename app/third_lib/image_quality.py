@@ -110,8 +110,7 @@ class ImageClarity(object):
         """清晰度检测（拉普拉斯）
         :return:进行拉普拉斯算法之后的方差
         """
-        img2gray = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)
-        imageVar = cv2.Laplacian(img2gray, cv2.CV_64F).var()
+        imageVar = cv2.Laplacian(self.image_data, cv2.CV_64F).var()
         return imageVar
 
     def get_frame_clarity_nrss(self):
