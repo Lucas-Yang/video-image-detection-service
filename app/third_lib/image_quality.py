@@ -59,6 +59,72 @@ class ImageSplitJoint(object):
             return False
 
 
+class ImageClarity(object):
+    """
+    图像清晰度类
+    """
+
+    def __init__(self, img: numpy.ndarray = None):
+        """
+        :param img: 输入图像
+        """
+        self.image_data = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # 灰度图
+        self.image_data = cv2.resize(self.image_data, (1920, 1080), )  # 将图像resize成特定大小再判断
+
+    @staticmethod
+    def __sobel(image):
+        """
+        使用Sobel算子提取水平和竖直方向上的边缘信息，并返回其对应的梯度图像
+        """
+        x = cv2.Sobel(image, cv2.CV_16S, 1, 0)
+        y = cv2.Sobel(image, cv2.CV_16S, 0, 1)
+        absX = cv2.convertScaleAbs(x)  # 转回uint8
+        absY = cv2.convertScaleAbs(y)
+        dst = cv2.addWeighted(absX, 0.5, absY, 0.5, 0)
+        return dst
+
+    @staticmethod
+    def __getBlock(G, Gr, block_size):
+        """
+        找出图像信息最丰富的多个块，并计算其结构清晰度NRSS
+        """
+        (h, w) = G.shape
+        G_blk_list = []
+        Gr_blk_list = []
+        for i in range(block_size):
+            for j in range(block_size):
+                G_blk = G[int((i / block_size) * h):int(((i + 1) / block_size) * h),
+                        int((j / block_size) * w):int(((j + 1) / block_size) * w)]
+                Gr_blk = Gr[int((i / block_size) * h):int(((i + 1) / block_size) * h),
+                         int((j / block_size) * w):int(((j + 1) / block_size) * w)]
+                G_blk_list.append(G_blk)
+                Gr_blk_list.append(Gr_blk)
+        sum = 0
+        for i in range(block_size * block_size):
+            mssim = compare_ssim(G_blk_list[i], Gr_blk_list[i])
+            sum += mssim
+        nrss = 1 - sum / (block_size * block_size * 1.0)
+        return nrss
+
+    def get_frame_clarity_laplacian(self):
+        """清晰度检测（拉普拉斯）
+        :return:进行拉普拉斯算法之后的方差
+        """
+        img2gray = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)
+        imageVar = cv2.Laplacian(img2gray, cv2.CV_64F).var()
+        return imageVar
+
+    def get_frame_clarity_nrss(self):
+        """清晰度检测（NRSS）
+        :return:
+        """
+        gblur_image = cv2.GaussianBlur(self.image_data, (7, 7), 0)  # 高斯滤波
+        G = self.__sobel(self.image_data)
+        Gr = self.__sobel(gblur_image)
+        block_size = 6
+        return self.__getBlock(G, Gr, block_size)  # 获取块信息
+
+
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
     """
@@ -200,60 +266,9 @@ class ImageQualityIndexGenerator(object):
         """
         pass
 
-    def get_frame_clarity_laplacian(self):
-        """清晰度检测（拉普拉斯）
-        :return:进行拉普拉斯算法之后的方差
-        """
-        img2gray = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)
-        imageVar = cv2.Laplacian(img2gray, cv2.CV_64F).var()
-        return imageVar
-
-    def get_frame_clarity_nrss(self):
-        """清晰度检测（NRSS）
-        :return:
-        """
-        self.image_data = cv2.resize(self.image_data, (1920, 1080), )  # 将图像resize成特定大小再判断
-        self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)  # 灰度图
-        gblur_image = cv2.GaussianBlur(self.image_data, (7, 7), 0)  # 高斯滤波
-        G = self.__sobel(self.image_data)
-        Gr = self.__sobel(gblur_image)
-        block_size = 6
-        return self.__getBlock(G, Gr, block_size)  # 获取块信息
-
-    @staticmethod
-    def __sobel(image):
-        """
-        使用Sobel算子提取水平和竖直方向上的边缘信息，并返回其对应的梯度图像
-        """
-        x = cv2.Sobel(image, cv2.CV_16S, 1, 0)
-        y = cv2.Sobel(image, cv2.CV_16S, 0, 1)
-        absX = cv2.convertScaleAbs(x)  # 转回uint8
-        absY = cv2.convertScaleAbs(y)
-        dst = cv2.addWeighted(absX, 0.5, absY, 0.5, 0)
-        return dst
-
-    @staticmethod
-    def __getBlock(G, Gr, block_size):
-        """
-        找出图像信息最丰富的多个块，并计算其结构清晰度NRSS
-        """
-        (h, w) = G.shape
-        G_blk_list = []
-        Gr_blk_list = []
-        for i in range(block_size):
-            for j in range(block_size):
-                G_blk = G[int((i / block_size) * h):int(((i + 1) / block_size) * h),
-                        int((j / block_size) * w):int(((j + 1) / block_size) * w)]
-                Gr_blk = Gr[int((i / block_size) * h):int(((i + 1) / block_size) * h),
-                         int((j / block_size) * w):int(((j + 1) / block_size) * w)]
-                G_blk_list.append(G_blk)
-                Gr_blk_list.append(Gr_blk)
-        sum = 0
-        for i in range(block_size * block_size):
-            mssim = compare_ssim(G_blk_list[i], Gr_blk_list[i])
-            sum += mssim
-        nrss = 1 - sum / (block_size * block_size * 1.0)
-        return nrss
+    def get_image_clarity(self):
+        image_clarity_handler = ImageClarity(self.image_data)
+        return image_clarity_handler.get_frame_clarity_nrss()
 
 
 if __name__ == '__main__':

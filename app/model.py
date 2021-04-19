@@ -205,7 +205,7 @@ class ImageIndex(object):
         """视频帧清晰度检测（使用NRSS算法）
         :return:
         """
-        detect_res = self.image_index_handler.get_frame_clarity_nrss()
+        detect_res = self.image_index_handler.get_image_clarity()
         self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
         return detect_res
 
