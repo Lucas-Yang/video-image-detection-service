@@ -11,7 +11,7 @@ test.py
 venv
 data
 dump.rdb
-model
+# model
 temp
 
 # My configurations:
