@@ -193,11 +193,13 @@ class FormatChecker(object):
                                 )
             else:
                 continue
-        if not (file.filename.endswith('.mp4') or file.filename.endswith('.MP4')):
+        allowed_formats = ('mp4', 'MP4', 'mkv', 'MKV', 'AVI', 'avi', 'flv', 'FLV', 'mkv',
+                           'MKV', 'mov', 'MOV', 'mpeg', 'MPEG', 'mpg', 'MPG', 'wmv', 'WMV')
+        if self.format_check(file.filename, allowed_formats):
+            return True
+        else:
             self.__logger.error(file.content_type)
             raise Exception("input error, {} is not a video file".format(file.filename))
-        else:
-            return True
 
     def ssim_index_checker(self, request):
         """ 相似性计算文档
