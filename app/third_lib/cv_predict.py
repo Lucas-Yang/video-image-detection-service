@@ -23,6 +23,7 @@ from app.factory import LogManager, MyThread
 thread_executor = ThreadPoolExecutor(max_workers=10)
 
 
+
 def my_async_decorator(f):
     """ 基于ThreadPoolExecutor的多线程装饰器, 返回future对象，通过调用task.result()获取执行结果
     :param f:
@@ -583,6 +584,89 @@ class VideoSilenceDetector(object):
                 }
                 res.append(silence_info)
         return res
+
+
+class VideoColourCastDetector(object):
+    """色差检测"""
+
+    def __init__(self, video_path=None, src_video_path=None, target_video_path=None):
+        self.video_path = video_path
+        self.src_video_path = src_video_path
+        self.target_video_path = target_video_path
+        self.video_color_primaries = []
+
+    def get_space_info(self):
+        info_dict = ffmpeg.probe(self.video_path)
+        info_list = info_dict['streams']
+        for info in info_list:
+            if 'color_primaries' in info:
+                self.video_color_primaries.append(info['color_primaries'])
+        if len(self.video_color_primaries) > 0:
+            if self.video_color_primaries[0] == 'bt2020':
+                return {"result": True, "color_primaries": self.video_color_primaries[0]}
+            else:
+                return {"result": False, "color_primaries": self.video_color_primaries[0]}
+        else:
+            return {"result": False, "color_primaries": None}
+
+    def get_average_chroma(self):
+        src_cap = cv2.VideoCapture(self.src_video_path)
+        src_frame_number = src_cap.get(7)
+        # 截取2——3帧
+        rate = int(src_frame_number / 3)
+        src_chroma_list = self.get_video_frame(self.src_video_path, rate)
+        target_chroma_list = self.get_video_frame(self.target_video_path, rate)
+        if len(src_chroma_list) == len(target_chroma_list):
+            for i in range(len(src_chroma_list)):
+                src_chroma = round(src_chroma_list[i], 2)
+                target_chroma = round(target_chroma_list[i], 2)
+                k = abs(src_chroma - target_chroma) / max(src_chroma, target_chroma)
+                if k >= 0.05:
+                    return {"result": True}
+                else:
+                    continue
+            return {"result": False}
+        else:
+            for i in range(min(len(src_chroma_list), len(target_chroma_list))):
+                src_chroma = round(src_chroma_list[i], 2)
+                target_chroma = round(target_chroma_list[i], 2)
+                k = abs(src_chroma - target_chroma) / max(src_chroma, target_chroma)
+                if k >= 0.05:
+                    return {"result": True}
+                else:
+                    continue
+            return {"result": False}
+
+    @staticmethod
+    def count_average_chroma(img):
+        m, n, c = img.shape
+        img_lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(img_lab)
+        d_a, d_b = 0, 0
+        for i in range(m):
+            for j in range(n):
+                d_a = d_a + a[i][j]
+                d_b = d_b + b[i][j]
+        pixel_sum = m * n
+        d_a, d_b = (d_a / pixel_sum) - 128, (d_b / pixel_sum) - 128
+        d = np.sqrt((np.square(d_a) + np.square(d_b)))
+        return d
+
+    def get_video_frame(self, video_path, rate):
+        chroma_list = []
+        cap = cv2.VideoCapture(video_path)
+        c = 1
+        while True:
+            ret, frame = cap.read()
+            if ret:
+                if c % rate == 0:
+                    chroma = self.count_average_chroma(frame)
+                    chroma_list.append(chroma)
+                c += 1
+            else:
+                break
+        cap.release()
+        return chroma_list
 
 
 if __name__ == '__main__':

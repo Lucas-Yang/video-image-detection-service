@@ -8,6 +8,7 @@ import json
 import logging
 import time
 import threading
+import cv2
 from jsonschema import validate
 from pymongo import MongoClient
 from app.data import VideoQualityItem
@@ -259,6 +260,37 @@ class FormatChecker(object):
             return False
         return True
 
+    def api_video_colour_cast_detection_checker(self, filename):
+        """视频色差格式检测
+        """
+        try:
+            if 'video' not in filename.content_type:
+                raise Exception("input file is not video")
+        except BaseException as err:
+            self.__logger.error(err)
+            return False
+        return True
+
+    def api_video_colour_cast_content_checker(self, file_src_path, file_target_path):
+        """有参考视频色差信息检测
+        """
+        src_cap = cv2.VideoCapture(file_src_path)
+        target_cap = cv2.VideoCapture(file_target_path)
+        try:
+            if src_cap.isOpened() and target_cap.isOpened():
+                src_frame_number = src_cap.get(7)
+                target_frame_number = target_cap.get(7)
+                src_frame_rate = src_cap.get(5)
+                target_frame_rate = target_cap.get(5)
+                src_time = int(src_frame_number / src_frame_rate)
+                target_time = int(target_frame_number / target_frame_rate)
+                if src_time != target_time:
+                    return False
+        except BaseException as err:
+            self.__logger.error(err)
+            return False
+        return True
+
     def api_image_clarity_checker(self, filename):
         """图像清晰度检测-格式校验
         """
@@ -273,6 +305,7 @@ class FormatChecker(object):
             self.__logger.error(err)
             return False
         return True
+
 
 class MyMongoClient(object):
     """mongo 操作类
