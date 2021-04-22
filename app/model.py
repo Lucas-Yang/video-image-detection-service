@@ -2,7 +2,7 @@
 dao层
 """
 from app.factory import LogManager, MyMongoClient
-from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDetector
+from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDetector, VideoColourCastDetector
 from app.third_lib.dot_predict import DotVideoIndex
 from app.third_lib.full_reference_video_quality import VideoSSIM
 from app.third_lib.image_quality import ImageQualityIndexGenerator
@@ -16,12 +16,14 @@ class PlayerIndex(object):
                  dot_info_dict: dict = None,
                  cv_info_dict: dict = None,
                  video_quality_dict: dict = None,
-                 silence_info_dict: dict = None
+                 silence_info_dict: dict = None,
+                 colour_cast_dict: dict = None
                  ):
         self.dot_info_dict = dot_info_dict
         self.cv_info_dict = cv_info_dict
         self.video_quality_dict = video_quality_dict
         self.silence_info_dict = silence_info_dict
+        self.colour_cast_dict = colour_cast_dict
         self.__logger = LogManager("server.log").logger
         self.__db_handler = MyMongoClient()
 
@@ -149,6 +151,21 @@ class PlayerIndex(object):
         silence_index_handler = VideoSilenceDetector(video_path=video_path, )
         silence_timestamps = silence_index_handler.get_silent_times()
         return {"silence_timestamps": silence_timestamps}
+
+    def get_colour_cast_index(self):
+        """无参考偏色检测"""
+        video_path = self.colour_cast_dict.get("video_path")
+        colour_cast_handler = VideoColourCastDetector(video_path=video_path)
+        colour_space_info = colour_cast_handler.get_space_info()
+        return colour_space_info
+
+    def get_colour_cast_index_with_reference(self):
+        """有参考偏色检测"""
+        src_video_path = self.colour_cast_dict.get("src_video_path")
+        target_video_path = self.colour_cast_dict.get("target_video_path")
+        colour_cast_handler = VideoColourCastDetector(src_video_path=src_video_path, target_video_path=target_video_path)
+        average_chroma = colour_cast_handler.get_average_chroma()
+        return average_chroma
 
 
 class ImageIndex(object):

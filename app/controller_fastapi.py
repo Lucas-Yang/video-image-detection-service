@@ -141,6 +141,87 @@ async def get_ssim_index(file_src: UploadFile = File(...),
         return {"code": -1, "message": str(err)}
 
 
+@player_app.post('/video/colorcast-detect')
+async def get_colour_cast_index(file_src: UploadFile = File(...)):
+    """导入前视频偏色检测（无参考）"""
+    if format_handler.api_video_colour_cast_detection_checker(file_src):
+        try:
+            file = await file_src.read()
+            base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_colour_cast_dir')
+            if not os.path.exists(base_path):
+                os.mkdir(base_path)
+            file_path = os.path.join(base_path, 'video_' + str(time.time()) + file_src.filename)
+            with open(file_path, "wb") as f:
+                f.write(file)
+            model_handler = PlayerIndex(colour_cast_dict={"video_path": file_path})
+            colour_cast_result = model_handler.get_colour_cast_index()
+            os.remove(file_path)
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": colour_cast_result
+            }
+        except Exception as err:
+            return {
+                "code": -2,
+                "message": str(err)
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"
+        }
+
+
+@player_app.post('/video/reference-colorcast-detect')
+async def get_colour_cast_with_reference_index(file_src: UploadFile = File(...),
+                                               file_target: UploadFile = File(...)):
+    """传入导入前后的两个视频偏色比较(有参考)
+    """
+    if format_handler.api_video_colour_cast_detection_checker(file_src) \
+            and format_handler.api_video_colour_cast_detection_checker(file_target):
+        try:
+            res_src = await file_src.read()
+            target_src = await file_target.read()
+            base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_colour_cast_with_reference_dir')
+            if not os.path.exists(base_path):
+                os.mkdir(base_path)
+            file_src_path = os.path.join(base_path, 'video_src_' + str(time.time()) + file_src.filename)
+            file_target_path = os.path.join(base_path, 'video_target_' + str(time.time()) + file_target.filename)
+            with open(file_src_path, "wb") as f_src:
+                f_src.write(res_src)
+            with open(file_target_path, "wb") as f_target:
+                f_target.write(target_src)
+            if format_handler.api_video_colour_cast_content_checker(file_src_path, file_target_path):
+                model_handler = PlayerIndex(colour_cast_dict={"src_video_path": file_src_path,
+                                                              "target_video_path": file_target_path})
+                colour_cast_result = model_handler.get_colour_cast_index_with_reference()
+                os.remove(file_src_path)
+                os.remove(file_target_path)
+                return {
+                    "code": 0,
+                    "message": "Success",
+                    "data": colour_cast_result
+                }
+            else:
+                os.remove(file_src_path)
+                os.remove(file_target_path)
+                return {
+                    "code": -3,
+                    "message": "The input videos time are different"
+                }
+        except Exception as err:
+            return {
+                "code": -2,
+                "message": str(err)
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"
+        }
+
+
 @player_app.post('/index/silence')
 async def get_silence_index(file_src: UploadFile = File(...)):
     if format_handler.silence_index_checker(file_src.filename):
