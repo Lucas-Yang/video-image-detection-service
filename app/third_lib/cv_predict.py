@@ -596,6 +596,8 @@ class VideoColourCastDetector(object):
         self.video_color_primaries = []
 
     def get_space_info(self):
+        """获取视频色彩空间信息，判断视频是否会偏色
+        """
         info_dict = ffmpeg.probe(self.video_path)
         info_list = info_dict['streams']
         for info in info_list:
@@ -603,42 +605,45 @@ class VideoColourCastDetector(object):
                 self.video_color_primaries.append(info['color_primaries'])
         if len(self.video_color_primaries) > 0:
             if self.video_color_primaries[0] == 'bt2020':
-                return {"result": True, "color_primaries": self.video_color_primaries[0]}
+                return {"judge": True, "color_primaries": self.video_color_primaries[0]}
             else:
-                return {"result": False, "color_primaries": self.video_color_primaries[0]}
+                return {"judge": False, "color_primaries": self.video_color_primaries[0]}
         else:
-            return {"result": False, "color_primaries": None}
+            return {"judge": False, "color_primaries": None}
 
     def get_average_chroma(self):
+        """根据相同帧数的色度平均值判断是否偏色
+        """
         src_cap = cv2.VideoCapture(self.src_video_path)
         src_frame_number = src_cap.get(7)
         # 截取2——3帧
         rate = int(src_frame_number / 3)
-        src_chroma_list = self.get_video_frame(self.src_video_path, rate)
-        target_chroma_list = self.get_video_frame(self.target_video_path, rate)
+        src_chroma_list = self.__get_video_frame(self.src_video_path, rate)
+        target_chroma_list = self.__get_video_frame(self.target_video_path, rate)
         if len(src_chroma_list) == len(target_chroma_list):
             for i in range(len(src_chroma_list)):
                 src_chroma = round(src_chroma_list[i], 2)
                 target_chroma = round(target_chroma_list[i], 2)
                 k = abs(src_chroma - target_chroma) / max(src_chroma, target_chroma)
                 if k >= 0.05:
-                    return {"result": True}
+                    return {"judge": True}
                 else:
                     continue
-            return {"result": False}
+            return {"judge": False}
         else:
             for i in range(min(len(src_chroma_list), len(target_chroma_list))):
                 src_chroma = round(src_chroma_list[i], 2)
                 target_chroma = round(target_chroma_list[i], 2)
                 k = abs(src_chroma - target_chroma) / max(src_chroma, target_chroma)
                 if k >= 0.05:
-                    return {"result": True}
+                    return {"judge": True}
                 else:
                     continue
-            return {"result": False}
+            return {"judge": False}
 
-    @staticmethod
-    def count_average_chroma(img):
+    def __count_average_chroma(self, img):
+        """计算该帧的色度平均值
+        """
         m, n, c = img.shape
         img_lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(img_lab)
@@ -652,7 +657,9 @@ class VideoColourCastDetector(object):
         d = np.sqrt((np.square(d_a) + np.square(d_b)))
         return d
 
-    def get_video_frame(self, video_path, rate):
+    def __get_video_frame(self, video_path, rate):
+        """截帧
+        """
         chroma_list = []
         cap = cv2.VideoCapture(video_path)
         c = 1
@@ -660,7 +667,7 @@ class VideoColourCastDetector(object):
             ret, frame = cap.read()
             if ret:
                 if c % rate == 0:
-                    chroma = self.count_average_chroma(frame)
+                    chroma = self.__count_average_chroma(frame)
                     chroma_list.append(chroma)
                 c += 1
             else:

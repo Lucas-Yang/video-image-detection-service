@@ -157,7 +157,7 @@ class PlayerIndex(object):
         video_path = self.colour_cast_dict.get("video_path")
         colour_cast_handler = VideoColourCastDetector(video_path=video_path)
         colour_space_info = colour_cast_handler.get_space_info()
-        return {"video will produce color difference": colour_space_info}
+        return colour_space_info
 
     def get_colour_cast_index_with_reference(self):
         """有参考偏色检测"""
@@ -165,7 +165,7 @@ class PlayerIndex(object):
         target_video_path = self.colour_cast_dict.get("target_video_path")
         colour_cast_handler = VideoColourCastDetector(src_video_path=src_video_path, target_video_path=target_video_path)
         average_chroma = colour_cast_handler.get_average_chroma()
-        return {"videos color difference": average_chroma}
+        return average_chroma
 
 
 class ImageIndex(object):

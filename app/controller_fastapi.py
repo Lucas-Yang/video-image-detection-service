@@ -141,7 +141,7 @@ async def get_ssim_index(file_src: UploadFile = File(...),
         return {"code": -1, "message": str(err)}
 
 
-@player_app.post('/video/colour_cast_detect')
+@player_app.post('/video/colorcast-detect')
 async def get_colour_cast_index(file_src: UploadFile = File(...)):
     """导入前视频偏色检测（无参考）"""
     if format_handler.api_video_colour_cast_detection_checker(file_src):
@@ -173,9 +173,9 @@ async def get_colour_cast_index(file_src: UploadFile = File(...)):
         }
 
 
-@player_app.post('/video/colour_cast_detect_with_reference')
-async def get_colour_cast__with_reference_index(file_src: UploadFile = File(...),
-                                                file_target: UploadFile = File(...)):
+@player_app.post('/video/reference-colorcast-detect')
+async def get_colour_cast_with_reference_index(file_src: UploadFile = File(...),
+                                               file_target: UploadFile = File(...)):
     """传入导入前后的两个视频偏色比较(有参考)
     """
     if format_handler.api_video_colour_cast_detection_checker(file_src) \
