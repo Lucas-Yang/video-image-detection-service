@@ -3,12 +3,14 @@ celery异步任务执行
 """
 import json
 import os
+import traceback
+
 from celery import Celery
 from ffmpy import FFmpeg
+
+from app.data import VideoQualityItem
 from app.factory import LogManager
 from app.model import PlayerIndex
-from app.data import VideoQualityItem
-import traceback
 
 logger = LogManager('server.log').logger
 

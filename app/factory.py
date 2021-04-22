@@ -2,13 +2,13 @@
 工具文件：封装各种操作类，例如日志，数据库操作封装，缓存，接口输入参数校验等等
 """
 
-import os
-import cloghandler
 import json
 import logging
-import time
+import os
 import threading
 import cv2
+import time
+import cloghandler
 from jsonschema import validate
 from pymongo import MongoClient
 from app.data import VideoQualityItem
@@ -51,7 +51,7 @@ class LogManager(object):
         """
         self.stream_handler = logging.StreamHandler()
         self.file_handler = cloghandler.ConcurrentRotatingFileHandler(self.__path, "a", 1024 * 1024 * 100, 5,
-                                                                        encoding='utf-8')
+                                                                      encoding='utf-8')
 
     def __set_handler(self, level='DEBUG'):
         """
@@ -192,11 +192,13 @@ class FormatChecker(object):
                                 )
             else:
                 continue
-        if not (file.filename.endswith('.mp4') or file.filename.endswith('.MP4')):
+        allowed_formats = ('mp4', 'MP4', 'mkv', 'MKV', 'AVI', 'avi', 'flv', 'FLV', 'mkv',
+                           'MKV', 'mov', 'MOV', 'mpeg', 'MPEG', 'mpg', 'MPG', 'wmv', 'WMV')
+        if self.format_check(file.filename, allowed_formats):
+            return True
+        else:
             self.__logger.error(file.content_type)
             raise Exception("input error, {} is not a video file".format(file.filename))
-        else:
-            return True
 
     def ssim_index_checker(self, request):
         """ 相似性计算文档
@@ -220,7 +222,9 @@ class FormatChecker(object):
         :param request:
         :return:
         """
-        allowed_formats = ('mp4', 'MP4', 'mkv', 'MKV', 'mp3', 'MP3', 'aac', 'AAC', 'wav', 'WAV')
+        allowed_formats = ('mp4', 'MP4', 'mkv', 'MKV', 'mp3', 'MP3', 'aac', 'AAC', 'wav', 'WAV',
+                           'AVI', 'avi', 'flv', 'FLV', 'mkv', 'MKV', 'mov', 'MOV', 'mpeg', 'MPEG',
+                           'mpg', 'MPG', 'wmv', 'WMV')
         return self.format_check(filename, allowed_formats)
 
     def api_ssim_index_checker(self, file):
@@ -310,6 +314,7 @@ class FormatChecker(object):
 class MyMongoClient(object):
     """mongo 操作类
     """
+
     def __init__(self):
         client = MongoClient(MONGO_URL)
         self.db = client.get_database(MONGO_DB)
@@ -350,6 +355,7 @@ class MyMongoClient(object):
 class MyThread(threading.Thread):
     """适配装饰器，重写Thread，新增get_result函数用于获取执行多线程函数的return值
     """
+
     def __init__(self, func, args=(), kwargs=None):
         super(MyThread, self).__init__()
         self.func = func
