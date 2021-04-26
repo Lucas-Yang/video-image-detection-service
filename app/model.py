@@ -226,6 +226,14 @@ class ImageIndex(object):
         self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
         return detect_res
 
+    def frame_colorlayer_detect(self):
+        """ 颜色区域检测，分为红 绿 蓝
+        :return:
+        """
+        detect_res = self.image_index_handler.get_image_colorlayer()
+        self.__logger.info("color_dict: {}".format(detect_res))
+        return detect_res
+
 
 if __name__ == '__main__':
     import json
