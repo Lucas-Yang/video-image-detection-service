@@ -369,7 +369,7 @@ async def clarity_detect(file: UploadFile = File(...)):
 
 
 @image_app.post('/quality/colorlayer-detect')
-async def clarity_detect(file: UploadFile = File(...)):
+async def colorlayer_detect(file: UploadFile = File(...)):
     """颜色区域检测，分为红 绿 蓝
     """
     res_src = await file.read()
