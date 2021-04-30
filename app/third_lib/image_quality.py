@@ -124,6 +124,40 @@ class ImageClarity(object):
         return self.__getBlock(G, Gr, block_size)  # 获取块信息
 
 
+class GreenImage(object):
+    """
+    绿屏类
+    """
+
+    def __init__(self, img: numpy.ndarray = None):
+        """
+        :param img: 输入图像
+        """
+        self.image_data = Image.fromarray(img)
+        self.image_data = self.image_data.convert('HSV')
+        self.width, self.height = self.image_data.size
+
+    def get_green_frame(self):
+        clrs = self.image_data.getcolors()  # 默认至多得到128种像素，检测超过会返回none
+        if clrs:
+            green_list = [0] * 65
+            greens = 0  # 像素的色相为绿的总个数
+            for clr in clrs:
+                # 绿色的H色相值为35～99（绿+青）
+                if 35 <= clr[1][0] <= 99:
+                    green_list[clr[1][0] - 35] += clr[0]
+                    greens += clr[0]
+            details = []
+            for i in range(65):
+                if green_list[i] > 0:
+                    detail = {"H_value": i + 35, "count": green_list[i]}
+                    details.append(detail)
+            res = {"green_ratio": greens / (self.width * self.height), "details": details}
+            return res
+        else:
+            return None
+
+
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
     """
@@ -269,6 +303,11 @@ class ImageQualityIndexGenerator(object):
         image_clarity_handler = ImageClarity(self.image_data)
         return image_clarity_handler.get_frame_clarity_nrss()
 
+    def get_green_image(self):
+        green_image_handler = GreenImage(self.image_data)
+        return green_image_handler.get_green_frame()
+
 
 if __name__ == '__main__':
-    pass
+    gi = GreenImage("/Users/bilibili/Desktop/green2.png")
+    print(gi.get_green_frame())

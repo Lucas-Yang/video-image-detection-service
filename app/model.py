@@ -226,6 +226,14 @@ class ImageIndex(object):
         self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
         return detect_res
 
+    def green_frame_detect(self):
+        """视频帧绿屏检测
+        :return:
+        """
+        detect_res = self.image_index_handler.get_green_image()
+        self.__logger.info("green_frame_detect: {}".format(detect_res))
+        return detect_res
+
 
 if __name__ == '__main__':
     import json

@@ -6,13 +6,14 @@
 """
 import os
 import time
-from fastapi import APIRouter, FastAPI, File, UploadFile
 
 from celery.result import AsyncResult
+from fastapi import APIRouter, File, UploadFile
+
+from app.data import DotItem
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex, ImageIndex
 from app.tasks import celery_app, cv_index_task
-from app.data import DotItem
 
 player_app = APIRouter()  # 视频类接口
 image_app = APIRouter()  # 图像类接口
@@ -348,9 +349,32 @@ async def horizontal_frame_detect(file: UploadFile = File(...)):
 @image_app.post('/quality/clarity-detect')
 async def clarity_detect(file: UploadFile = File(...)):
     res_src = await file.read()
-    if format_handler.api_image_clarity_checker(file.filename):
+    if format_handler.api_image_checker(file.filename):
         image_handler = ImageIndex(res_src)
         result = image_handler.frame_clarity_detect()
+        if result == -1:
+            return {
+                "code": -2,
+                "message": "access model server error"
+            }
+        else:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": result}
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
+
+
+@image_app.post('/quality/green-frame-detect')
+async def green_frame_detect(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_checker(file.filename):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.green_frame_detect()
         if result == -1:
             return {
                 "code": -2,
