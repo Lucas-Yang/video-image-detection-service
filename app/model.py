@@ -163,7 +163,8 @@ class PlayerIndex(object):
         """有参考偏色检测"""
         src_video_path = self.colour_cast_dict.get("src_video_path")
         target_video_path = self.colour_cast_dict.get("target_video_path")
-        colour_cast_handler = VideoColourCastDetector(src_video_path=src_video_path, target_video_path=target_video_path)
+        colour_cast_handler = VideoColourCastDetector(src_video_path=src_video_path,
+                                                      target_video_path=target_video_path)
         average_chroma = colour_cast_handler.get_average_chroma()
         return average_chroma
 
@@ -223,7 +224,15 @@ class ImageIndex(object):
         :return:
         """
         detect_res = self.image_index_handler.get_image_clarity()
-        self.__logger.info("horizontal_portrait_detect: {}".format(detect_res))
+        self.__logger.info("frame_clarity_detect: {}".format(detect_res))
+        return detect_res
+
+    def green_frame_detect(self):
+        """视频帧绿屏检测
+        :return:
+        """
+        detect_res = self.image_index_handler.get_green_image()
+        self.__logger.info("green_frame_detect: {}".format(detect_res))
         return detect_res
 
     def frame_colorlayer_detect(self):

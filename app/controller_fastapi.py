@@ -368,6 +368,29 @@ async def clarity_detect(file: UploadFile = File(...)):
             "message": "input error"}
 
 
+@image_app.post('/quality/green-frame-detect')
+async def green_frame_detect(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_checker(file.filename):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.green_frame_detect()
+        if result == -1:
+            return {
+                "code": -2,
+                "message": "access model server error"
+            }
+        else:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": result}
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
+
+
 @image_app.post('/quality/colorlayer-detect')
 async def colorlayer_detect(file: UploadFile = File(...)):
     """颜色区域检测，分为红 绿 蓝

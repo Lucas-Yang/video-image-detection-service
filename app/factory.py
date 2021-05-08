@@ -295,7 +295,7 @@ class FormatChecker(object):
             return False
         return True
 
-    def api_image_clarity_checker(self, filename):
+    def api_image_checker(self, filename):
         """图像清晰度检测-格式校验
         """
         allowed_formats = ('jpg', 'png', 'jpeg')
