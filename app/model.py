@@ -163,7 +163,8 @@ class PlayerIndex(object):
         """有参考偏色检测"""
         src_video_path = self.colour_cast_dict.get("src_video_path")
         target_video_path = self.colour_cast_dict.get("target_video_path")
-        colour_cast_handler = VideoColourCastDetector(src_video_path=src_video_path, target_video_path=target_video_path)
+        colour_cast_handler = VideoColourCastDetector(src_video_path=src_video_path,
+                                                      target_video_path=target_video_path)
         average_chroma = colour_cast_handler.get_average_chroma()
         return average_chroma
 

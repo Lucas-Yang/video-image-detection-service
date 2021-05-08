@@ -60,3 +60,10 @@ class TestFunc(object):
     # 暂时还无接口
     def error_frame_detection_test(self):
         pass
+
+    def test_green_frame(self):
+        filename = self.module_path + '/image_data/green.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.png', img)[1]
+        a = ImageIndex(img_bytes)
+        assert a.green_frame_detect() is not None
