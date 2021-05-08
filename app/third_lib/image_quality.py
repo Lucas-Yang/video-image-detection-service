@@ -158,6 +158,93 @@ class GreenImage(object):
             return None
 
 
+class ImageColorLayer(object):
+    def __init__(self, img: numpy.ndarray = None):
+        m, n, c = img.shape
+        size = (int(n * 0.5), int(m * 0.5))
+        self.img = cv2.resize(img, size, interpolation=cv2.INTER_AREA)  # 降低运算量
+        self.hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
+        self.red_lower1 = numpy.array([0, 43, 46])
+        self.red_upper1 = numpy.array([10, 255, 255])
+        self.red_lower2 = numpy.array([153, 43, 46])
+        self.red_upper2 = numpy.array([180, 255, 255])
+        self.green_lower = numpy.array([35, 43, 46])
+        self.green_upper = numpy.array([99, 255, 255])
+        self.blue_lower = numpy.array([100, 43, 46])
+        self.blue_upper = numpy.array([130, 255, 255])
+        self.color_list = [0, 1, 2]
+        self.color_map = numpy.zeros((m, n), numpy.int8)
+        self.color_dict = {'blue': '', 'green': '', 'red': '', 'exist_deep_red': False}
+
+    def get_colorlayer_info(self):
+        self.__get_colors_ratio()
+        self.__get_red_ratio()
+        return self.color_dict
+
+    def __get_red_ratio(self):
+        """计算具有固定数值的图层颜色所占比例，针对深红色用于判断有无
+        """
+        deep_red_area = 0
+        m, n, c = self.img.shape
+        for i in range(m):
+            for j in range(n):
+                pixel = self.img[i, j]
+                b, g, r = pixel[0], pixel[1], pixel[2]  # 图片在传输时变为rgb
+                if 118 <= r <= 138 and 118 <= g <= 138 and 245 <= b <= 255:
+                    deep_red_area += 1  # 深红图层
+        deep_red_ratio = deep_red_area / (m * n)
+        deep_red_flag = False
+        if deep_red_ratio < 0.001:   # 深红占比少于0.1%认为不存在
+            pass
+        else:
+            deep_red_flag = True
+        self.color_dict['exist_deep_red'] = deep_red_flag
+
+    def __get_colors_ratio(self):
+        """计算红绿蓝图层的比例
+        """
+        for color_index in self.color_list:
+            if color_index == 0:  # 红色
+                red_area = 0
+                mask1 = cv2.inRange(self.hsv, self.red_lower1, self.red_upper1)
+                mask2 = cv2.inRange(self.hsv, self.red_lower2, self.red_upper2)
+                mask = cv2.bitwise_or(mask1, mask2)
+                contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                m, n = mask.shape
+                for cnt in contours:
+                    cv2.fillPoly(mask, [cnt], (255, 255, 255))
+                for i in range(m):
+                    for j in range(n):
+                        if mask[i][j] != 0:
+                            red_area += 1
+                            self.color_map[i][j] = 1  # 做标记防止重复计算
+                red_ratio = '{:.2%}'.format(red_area / (m * n))
+                self.color_dict['red'] = red_ratio
+            elif color_index == 1:  # 绿色
+                green_area = 0
+                mask = cv2.inRange(self.hsv, self.green_lower, self.green_upper)
+                cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                m, n = mask.shape
+                for i in range(m):
+                    for j in range(n):
+                        if mask[i][j] != 0 and self.color_map[i][j] == 0:
+                            green_area += 1
+                            self.color_map[i][j] = 2
+                red_ratio = '{:.2%}'.format(green_area / (m * n))
+                self.color_dict['green'] = red_ratio
+            elif color_index == 2:  # 蓝色
+                blue_area = 0
+                mask = cv2.inRange(self.hsv, self.blue_lower, self.blue_upper)
+                cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                m, n = mask.shape
+                for i in range(m):
+                    for j in range(n):
+                        if mask[i][j] != 0 and self.color_map[i][j] == 0:
+                            blue_area += 1
+                red_ratio = '{:.2%}'.format(blue_area / (m * n))
+                self.color_dict['blue'] = red_ratio
+
+
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
     """
@@ -303,11 +390,6 @@ class ImageQualityIndexGenerator(object):
         image_clarity_handler = ImageClarity(self.image_data)
         return image_clarity_handler.get_frame_clarity_nrss()
 
-    def get_green_image(self):
-        green_image_handler = GreenImage(self.image_data)
-        return green_image_handler.get_green_frame()
-
 
 if __name__ == '__main__':
-    gi = GreenImage("/Users/bilibili/Desktop/green2.png")
-    print(gi.get_green_frame())
+    pass

@@ -57,6 +57,13 @@ class TestFunc(object):
         a = ImageIndex(img_bytes)
         assert a.frame_ocr() is not None
 
+    def test_color_layer(self):
+        filename = self.module_path + '/image_data/color_layer_detect1.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.jpg', img)[1]
+        a = ImageIndex(img_bytes)
+        assert a.frame_colorlayer_detect() is not None
+
     # 暂时还无接口
     def error_frame_detection_test(self):
         pass
