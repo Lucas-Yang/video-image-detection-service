@@ -390,6 +390,10 @@ class ImageQualityIndexGenerator(object):
         image_clarity_handler = ImageClarity(self.image_data)
         return image_clarity_handler.get_frame_clarity_nrss()
 
+    def get_image_colorlayer(self):
+        image_colorlayer_handler = ImageColorLayer(self.image_data)
+        return image_colorlayer_handler.get_colorlayer_info()
+
 
 if __name__ == '__main__':
     pass
