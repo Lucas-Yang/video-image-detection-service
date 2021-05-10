@@ -194,7 +194,7 @@ class ImageColorLayer(object):
                     deep_red_area += 1  # 深红图层
         deep_red_ratio = deep_red_area / (m * n)
         deep_red_flag = False
-        if deep_red_ratio < 0.001:   # 深红占比少于0.1%认为不存在
+        if deep_red_ratio < 0.001:  # 深红占比少于0.1%认为不存在
             pass
         else:
             deep_red_flag = True
@@ -389,6 +389,10 @@ class ImageQualityIndexGenerator(object):
     def get_image_clarity(self):
         image_clarity_handler = ImageClarity(self.image_data)
         return image_clarity_handler.get_frame_clarity_nrss()
+
+    def get_green_image(self):
+        green_image_handler = GreenImage(self.image_data)
+        return green_image_handler.get_green_frame()
 
 
 if __name__ == '__main__':
