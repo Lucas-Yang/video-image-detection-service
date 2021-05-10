@@ -6,9 +6,11 @@
 """
 import os
 import time
-from fastapi import APIRouter, FastAPI, File, UploadFile
 
 from celery.result import AsyncResult
+from fastapi import APIRouter, File, UploadFile
+
+from app.data import DotItem
 from app.factory import FormatChecker, LogManager
 from app.model import PlayerIndex, ImageIndex
 from app.tasks import celery_app, cv_index_task
