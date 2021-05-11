@@ -64,7 +64,8 @@ class TestFunc(object):
         img = cv2.imread(filename)
         img_bytes = cv2.imencode('.jpg', img)[1]
         a = ImageIndex(img_bytes)
-        assert a.frame_colorlayer_detect() is not None
+        assert a.frame_colorlayer_detect()['blue'] == '35.04%' and \
+               a.frame_colorlayer_detect()['green'] == '30.59%'
 
     # 暂时还无接口
     def error_frame_detection_test(self):
