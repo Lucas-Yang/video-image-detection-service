@@ -7,7 +7,7 @@ import os
 import cv2
 import pytest
 
-from app.model import ImageIndex
+from app.model import ImageIndex, PlayerIndex
 
 
 class TestFunc(object):
@@ -62,10 +62,40 @@ class TestFunc(object):
     def test_color_layer(self):
         filename = self.module_path + '/image_data/color_layer_detect1.png'
         img = cv2.imread(filename)
-        img_bytes = cv2.imencode('.jpg', img)[1]
+        img_bytes = cv2.imencode('.png', img)[1]
         a = ImageIndex(img_bytes)
-        assert a.frame_colorlayer_detect()['blue'] == '35.04%' and \
-               a.frame_colorlayer_detect()['green'] == '30.59%'
+        assert a.frame_colorlayer_detect()['blue'] == '35.21%' and \
+               a.frame_colorlayer_detect()['green'] == '31.55%'
+
+    def test_horizontal_frame_detect_true(self):
+        filename = self.module_path + '/image_data/horizontal_frame_detect_true.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.png', img)[1]
+        a = ImageIndex(img_bytes)
+        assert a.frame_horizontal_portrait_detect() is True
+
+    def test_horizontal_frame_detect_false(self):
+        filename = self.module_path + '/image_data/horizontal_frame_detect_false.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.png', img)[1]
+        a = ImageIndex(img_bytes)
+        assert a.frame_horizontal_portrait_detect() is False
+
+    def test_get_colour_cast_true(self):
+        filepath = self.module_path + '/video_data/get_colour_cast_true.mov'
+        a = PlayerIndex(colour_cast_dict={"video_path": filepath})
+        assert a.get_colour_cast_index()['judge'] is True
+
+    def test_get_colour_cast_false(self):
+        filepath = self.module_path + '/video_data/get_colour_cast_false.mp4'
+        a = PlayerIndex(colour_cast_dict={"video_path": filepath})
+        assert a.get_colour_cast_index()['judge'] is False
+
+    def test_get_colour_cast_with_reference(self):
+        file_src_path = self.module_path + '/video_data/get_colour_cast_false.mp4'
+        file_target_path = self.module_path + '/video_data/get_colour_cast_false.mp4'
+        a = PlayerIndex(colour_cast_dict={"src_video_path": file_src_path, "target_video_path": file_target_path})
+        assert a.get_colour_cast_index_with_reference()['judge'] is False
 
     # 暂时还无接口
     def error_frame_detection_test(self):
