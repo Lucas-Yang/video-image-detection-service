@@ -2,10 +2,12 @@
 重要类函数单元测试
 """
 
-import cv2
 import os
+
+import cv2
+import pytest
+
 from app.model import ImageIndex
-from app.model import PlayerIndex
 
 
 class TestFunc(object):
@@ -74,3 +76,7 @@ class TestFunc(object):
         img_bytes = cv2.imencode('.png', img)[1]
         a = ImageIndex(img_bytes)
         assert a.green_frame_detect() is not None
+
+
+if __name__ == '__main__':
+    pytest.main(["-s", "func_test.py"])
