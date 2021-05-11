@@ -13,11 +13,56 @@ class TestPort(object):
                              "Chrome/51.0.2704.103 Safari/537.36"}
 
     def test_green_frame_detect(self):
-        url = "http://127.0.0.1:8091/image/quality/green-frame-detect"
+        url = "http://127.0.0.1:8090/image/quality/green-frame-detect"
         filepath = self.module_path + '/image_data/green.png'
         files = {'file': open(filepath, "rb")}
         response = requests.post(url=url, files=files, headers=self.headers)
-        assert response.status_code is 200
+        assert response.status_code == 200
+        assert response.json()['code'] == 0
+
+    def test_clarity_detect(self):
+        url = "http://127.0.0.1:8090/image/quality/clarity-detect"
+        filepath = self.module_path + '/image_data/clarity.jpeg'
+        files = {'file': open(filepath, "rb")}
+        response = requests.post(url=url, files=files, headers=self.headers)
+        assert response.status_code == 200
+        # print(response.json())
+        assert response.json()['code'] == 0
+
+    def test_get_silence_index(self):
+        url = "http://127.0.0.1:8090/player/index/silence"
+        filepath = self.module_path + '/image_data/silence.mp3'
+        files = {'file_src': open(filepath, "rb")}
+        response = requests.post(url=url, files=files, headers=self.headers, )
+        assert response.status_code == 200
+        # print(response.json())
+        assert response.json()['code'] == 0
+
+    def test_judge_white_frame(self):
+        url = "http://127.0.0.1:8090/image/quality/white-detect"
+        filepath = self.module_path + '/image_data/white.jpg'
+        files = [('file', ('white.jpg', open(filepath, 'rb'), 'image/png'))]
+        response = requests.post(url=url, files=files, headers=self.headers, )
+        assert response.status_code == 200
+        # print(response.json())
+        assert response.json()['code'] == 0
+
+    def test_horizontal_frame_detect(self):
+        url = "http://127.0.0.1:8090/image/quality/horizontal-frame-detect"
+        filepath = self.module_path + '/image_data/horizontal.png'
+        files = [('file', ('horizontal.png', open(filepath, 'rb'), 'image/png'))]
+        response = requests.post(url=url, files=files, headers=self.headers, )
+        assert response.status_code == 200
+        assert response.json()['code'] == 0
+
+    # def test_blurred_frame_detect(self):
+    #     url = "http://127.0.0.1:8090/image/quality/blurred-detect"
+    #     filepath = self.module_path + '/image_data/ipb.jpg'
+    #     files = {'file': open(filepath, "rb")}
+    #     response = requests.post(url=url, files=files, headers=self.headers)
+    #     assert response.status_code == 200
+    #     print(response.json())
+    #     assert response.json()['code'] == 0
 
     def test_color_layer(self):
         url = "http://localhost:8090/image/quality/colorlayer-detect"
