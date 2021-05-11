@@ -5,6 +5,7 @@
 import os
 
 import cv2
+import pytest
 
 from app.model import ImageIndex
 
@@ -78,5 +79,4 @@ class TestFunc(object):
 
 
 if __name__ == '__main__':
-    tf = TestFunc()
-    tf.test_green_frame()
+    pytest.main(["-s", "func_test.py"])
