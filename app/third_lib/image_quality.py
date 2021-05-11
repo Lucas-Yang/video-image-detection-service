@@ -394,6 +394,10 @@ class ImageQualityIndexGenerator(object):
         green_image_handler = GreenImage(self.image_data)
         return green_image_handler.get_green_frame()
 
+    def get_image_colorlayer(self):
+        image_colorlayer_handler = ImageColorLayer(self.image_data)
+        return image_colorlayer_handler.get_colorlayer_info()
+
 
 if __name__ == '__main__':
     pass
