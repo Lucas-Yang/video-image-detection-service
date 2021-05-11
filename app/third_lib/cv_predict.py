@@ -23,7 +23,6 @@ from app.factory import LogManager, MyThread
 thread_executor = ThreadPoolExecutor(max_workers=10)
 
 
-
 def my_async_decorator(f):
     """ 基于ThreadPoolExecutor的多线程装饰器, 返回future对象，通过调用task.result()获取执行结果
     :param f:

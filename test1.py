@@ -123,7 +123,24 @@ class BlurredImageChecker(object):
 
         plt.show()
 
+    @staticmethod
+    def alpha_detect(image_path):
+        """
+        """
+        img = cv2.imread(image_path)
+        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        cv2.imshow("hsv", img_hsv)
+        mask1 = cv2.inRange(img_hsv, (0, 50, 20), (5, 255, 255))
+        mask2 = cv2.inRange(img_hsv, (175, 50, 20), (180, 255, 255))
+
+        mask = cv2.bitwise_or(mask1, mask2)
+        croped = cv2.bitwise_and(img, img, mask=mask)
+
+        cv2.imshow("mask", mask)
+        cv2.imshow("croped", croped)
+        cv2.waitKey()
+
 
 if __name__ == '__main__':
-    handler = BlurredImageChecker()
-    handler.img_var('./temp/temp1/普通', './temp/temp1/花屏')
+    print(1)
+    BlurredImageChecker().alpha_detect('1.png')
