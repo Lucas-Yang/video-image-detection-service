@@ -142,6 +142,36 @@ async def get_ssim_index(file_src: UploadFile = File(...),
         return {"code": -1, "message": str(err)}
 
 
+@player_app.post('/video/vmaf')
+async def get_vmaf_score(file_input: UploadFile = File(...),
+                         file_refer: UploadFile = File(...)
+                         ):
+    try:
+        res_input = await file_input.read()  # 输入视频
+        res_refer = await file_refer.read()  # 参考视频
+
+        base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
+        if not os.path.exists(base_path):
+            os.mkdir(base_path)
+        file_input_path = os.path.join(base_path, str(time.time()) + file_input.filename)
+        file_refer_path = os.path.join(base_path, str(time.time()) + file_refer.filename)
+        with open(file_input_path, "wb") as f:
+            f.write(res_input)
+        with open(file_refer_path, 'wb') as f:
+            f.write(res_refer)
+        model_handler = PlayerIndex(video_quality_dict={"input_video": file_input_path, "refer_video": file_refer_path})
+        video_quality_result_score = model_handler.get_video_quality_vmaf()
+        os.remove(file_input_path)  # 删除临时视频文件
+        os.remove(file_refer_path)  # 删除临时固定帧率源
+        return {
+            "code": 0,
+            "message": "Success",
+            "data": video_quality_result_score
+        }
+    except Exception as err:
+        return {"code": -1, "message": str(err)}
+
+
 @player_app.post('/video/colorcast-detect')
 async def get_colour_cast_index(file_src: UploadFile = File(...)):
     """导入前视频偏色检测（无参考）"""
