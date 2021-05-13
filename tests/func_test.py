@@ -60,12 +60,12 @@ class TestFunc(object):
         assert a.frame_ocr() is not None
 
     def test_color_layer(self):
-        filename = self.module_path + '/image_data/color_layer_detect1.png'
+        filename = self.module_path + '/image_data/color_layer_detect2.png'
         img = cv2.imread(filename)
         img_bytes = cv2.imencode('.png', img)[1]
         a = ImageIndex(img_bytes)
-        assert a.frame_colorlayer_detect()['blue'] == '35.21%' and \
-               a.frame_colorlayer_detect()['green'] == '31.55%'
+        assert a.frame_colorlayer_detect()['blue'] == '36.22%' and \
+               a.frame_colorlayer_detect()['green'] == '15.11%'
 
     def test_horizontal_frame_detect_true(self):
         filename = self.module_path + '/image_data/horizontal_frame_detect_true.png'

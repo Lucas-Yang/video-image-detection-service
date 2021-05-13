@@ -66,10 +66,10 @@ class TestPort(object):
 
     def test_color_layer(self):
         url = "http://localhost:8090/image/quality/colorlayer-detect"
-        filepath = self.module_path + '/image_data/color_layer_detect1.png'
+        filepath = self.module_path + '/image_data/color_layer_detect2.png'
         files = [('file', ('color_layer_detect1.png', open(filepath, 'rb'), 'image/png'))]
         response = requests.request("POST", url, headers=self.headers, files=files)
-        assert response.text.find('"blue":"35.21%","green":"31.55%"') != -1
+        assert response.text.find('"blue":"36.22%","green":"15.11%"') != -1
 
     def test_horizontal_frame_detect(self):
         url = "http://localhost:8090/image/quality/horizontal-frame-detect"
