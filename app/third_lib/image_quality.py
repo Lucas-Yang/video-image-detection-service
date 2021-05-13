@@ -160,9 +160,8 @@ class GreenImage(object):
 
 class ImageColorLayer(object):
     def __init__(self, img: numpy.ndarray = None):
-        m, n, c = img.shape
-        size = (int(n * 0.5), int(m * 0.5))
-        self.img = cv2.resize(img, size, interpolation=cv2.INTER_AREA)  # 降低运算量
+        self.img = img
+        self.m, self.n, self.c = self.img.shape
         self.hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
         self.red_lower1 = numpy.array([0, 43, 46])
         self.red_upper1 = numpy.array([10, 255, 255])
@@ -173,28 +172,26 @@ class ImageColorLayer(object):
         self.blue_lower = numpy.array([100, 43, 46])
         self.blue_upper = numpy.array([130, 255, 255])
         self.color_list = [0, 1, 2]
-        self.color_map = numpy.zeros((m, n), numpy.int8)
+        self.color_map = numpy.zeros((self.m, self.n), numpy.int8)
         self.color_dict = {'blue': '', 'green': '', 'red': '', 'exist_deep_red': False}
 
     def get_colorlayer_info(self):
-        self.__get_colors_ratio()
         self.__get_red_ratio()
+        self.__get_colors_ratio()
         return self.color_dict
 
     def __get_red_ratio(self):
         """计算具有固定数值的图层颜色所占比例，针对深红色用于判断有无
         """
-        deep_red_area = 0
-        m, n, c = self.img.shape
-        for i in range(m):
-            for j in range(n):
-                pixel = self.img[i, j]
-                b, g, r = pixel[0], pixel[1], pixel[2]  # 图片在传输时变为rgb
-                if 118 <= r <= 138 and 118 <= g <= 138 and 245 <= b <= 255:
-                    deep_red_area += 1  # 深红图层
-        deep_red_ratio = deep_red_area / (m * n)
+        xy = numpy.where(
+            (self.img[:, :, 0] >= 245) & (self.img[:, :, 0] <= 255) &
+            (self.img[:, :, 1] >= 118) & (self.img[:, :, 1] <= 138) &
+            (self.img[:, :, 2] >= 118) & (self.img[:, :, 2] <= 138),
+            1, -1)
+        deep_red_area = numpy.sum(xy == 1)
+        deep_red_ratio = deep_red_area / (self.m * self.n)
         deep_red_flag = False
-        if deep_red_ratio < 0.001:  # 深红占比少于0.1%认为不存在
+        if deep_red_ratio < 0.002:  # 深红占比少于0.2%认为不存在
             pass
         else:
             deep_red_flag = True
@@ -204,44 +201,30 @@ class ImageColorLayer(object):
         """计算红绿蓝图层的比例
         """
         for color_index in self.color_list:
-            if color_index == 0:  # 红色
-                red_area = 0
+            if color_index == 0:  # 浅红色
                 mask1 = cv2.inRange(self.hsv, self.red_lower1, self.red_upper1)
                 mask2 = cv2.inRange(self.hsv, self.red_lower2, self.red_upper2)
                 mask = cv2.bitwise_or(mask1, mask2)
                 contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                m, n = mask.shape
                 for cnt in contours:
                     cv2.fillPoly(mask, [cnt], (255, 255, 255))
-                for i in range(m):
-                    for j in range(n):
-                        if mask[i][j] != 0:
-                            red_area += 1
-                            self.color_map[i][j] = 1  # 做标记防止重复计算
-                red_ratio = '{:.2%}'.format(red_area / (m * n))
+                self.color_map = numpy.where(mask != 0, 1, 0)
+                red_area = numpy.sum(self.color_map == 1)
+                red_ratio = '{:.2%}'.format(red_area / (self.m * self.n))
                 self.color_dict['red'] = red_ratio
             elif color_index == 1:  # 绿色
-                green_area = 0
                 mask = cv2.inRange(self.hsv, self.green_lower, self.green_upper)
                 cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                m, n = mask.shape
-                for i in range(m):
-                    for j in range(n):
-                        if mask[i][j] != 0 and self.color_map[i][j] == 0:
-                            green_area += 1
-                            self.color_map[i][j] = 2
-                red_ratio = '{:.2%}'.format(green_area / (m * n))
+                self.color_map = numpy.where((mask != 0) & (self.color_map == 0), 2, 0)
+                green_area = numpy.sum(self.color_map == 2)
+                red_ratio = '{:.2%}'.format(green_area / (self.m * self.n))
                 self.color_dict['green'] = red_ratio
             elif color_index == 2:  # 蓝色
-                blue_area = 0
                 mask = cv2.inRange(self.hsv, self.blue_lower, self.blue_upper)
                 cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                m, n = mask.shape
-                for i in range(m):
-                    for j in range(n):
-                        if mask[i][j] != 0 and self.color_map[i][j] == 0:
-                            blue_area += 1
-                red_ratio = '{:.2%}'.format(blue_area / (m * n))
+                self.color_map = numpy.where((mask != 0) & (self.color_map == 0), 3, 0)
+                blue_area = numpy.sum(self.color_map == 3)
+                red_ratio = '{:.2%}'.format(blue_area / (self.m * self.n))
                 self.color_dict['blue'] = red_ratio
 
 
