@@ -162,12 +162,15 @@ async def get_vmaf_score(file_input: UploadFile = File(...),
         model_handler = PlayerIndex(video_quality_dict={"input_video": file_input_path, "refer_video": file_refer_path})
         video_quality_result_score = model_handler.get_video_quality_vmaf()
         os.remove(file_input_path)  # 删除临时视频文件
-        os.remove(file_refer_path)  # 删除临时固定帧率源
-        return {
-            "code": 0,
-            "message": "Success",
-            "data": video_quality_result_score
-        }
+        os.remove(file_refer_path)
+        if video_quality_result_score['vmaf_score'] is not None:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": video_quality_result_score
+            }
+        else:
+            raise Exception("视频解析出现异常（可能由于视频分辨率不同）")
     except Exception as err:
         return {"code": -1, "message": str(err)}
 

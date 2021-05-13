@@ -128,7 +128,7 @@ class VideoVMAF(object):
         output = p.communicate()[1].decode('utf-8')
         if p.returncode != 0:
             sys.stderr.write(output)
-            sys.exit(1)
+            return None
         lines = output.splitlines()
         vmaf_score = lines[-1].split("score:")[-1].strip()
         return vmaf_score
