@@ -163,13 +163,13 @@ class ImageColorLayer(object):
         self.img = img
         self.m, self.n, self.c = self.img.shape
         self.hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
-        self.red_lower1 = numpy.array([0, 43, 46])
+        self.red_lower1 = numpy.array([0, 40, 43])
         self.red_upper1 = numpy.array([10, 255, 255])
-        self.red_lower2 = numpy.array([153, 43, 46])
+        self.red_lower2 = numpy.array([153, 40, 43])
         self.red_upper2 = numpy.array([180, 255, 255])
-        self.green_lower = numpy.array([35, 43, 46])
+        self.green_lower = numpy.array([35, 40, 43])
         self.green_upper = numpy.array([99, 255, 255])
-        self.blue_lower = numpy.array([100, 43, 46])
+        self.blue_lower = numpy.array([100, 40, 43])
         self.blue_upper = numpy.array([130, 255, 255])
         self.color_list = [0, 1, 2]
         self.color_map = numpy.zeros((self.m, self.n), numpy.int8)
@@ -184,14 +184,14 @@ class ImageColorLayer(object):
         """计算具有固定数值的图层颜色所占比例，针对深红色用于判断有无
         """
         xy = numpy.where(
-            (self.img[:, :, 0] >= 245) & (self.img[:, :, 0] <= 255) &
-            (self.img[:, :, 1] >= 118) & (self.img[:, :, 1] <= 138) &
-            (self.img[:, :, 2] >= 118) & (self.img[:, :, 2] <= 138),
+            (self.img[:, :, 0] >= 220) & (self.img[:, :, 0] <= 255) &
+            (self.img[:, :, 1] >= 108) & (self.img[:, :, 1] <= 148) &
+            (self.img[:, :, 2] >= 108) & (self.img[:, :, 2] <= 148),
             1, -1)
         deep_red_area = numpy.sum(xy == 1)
         deep_red_ratio = deep_red_area / (self.m * self.n)
         deep_red_flag = False
-        if deep_red_ratio < 0.002:  # 深红占比少于0.2%认为不存在
+        if deep_red_ratio < 0.003:  # 深红占比少于0.3%认为不存在
             pass
         else:
             deep_red_flag = True

@@ -64,8 +64,8 @@ class TestFunc(object):
         img = cv2.imread(filename)
         img_bytes = cv2.imencode('.png', img)[1]
         a = ImageIndex(img_bytes)
-        assert a.frame_colorlayer_detect()['blue'] == '36.22%' and \
-               a.frame_colorlayer_detect()['green'] == '15.11%'
+        assert a.frame_colorlayer_detect()['blue'] == '37.33%' and \
+               a.frame_colorlayer_detect()['green'] == '26.80%'
 
     def test_horizontal_frame_detect_true(self):
         filename = self.module_path + '/image_data/horizontal_frame_detect_true.png'
