@@ -130,7 +130,7 @@ class VideoVMAF(object):
             sys.stderr.write(output)
             return None
         lines = output.splitlines()
-        vmaf_score = lines[-1].split("score:")[-1].strip()
+        vmaf_score = lines[-1].split("score:")[-1].strip()  # vmaf的分数在命令行输出的最后一行
         return vmaf_score
 
 
