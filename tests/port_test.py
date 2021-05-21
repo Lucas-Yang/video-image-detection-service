@@ -96,6 +96,17 @@ class TestPort(object):
         response = requests.request("POST", url, headers=self.headers, files=files)
         assert response.text.find('false') != -1
 
+    def test_get_vmaf_score(self):
+        url = "http://127.0.0.1:8090/player/video/vmaf"
+        input_video_path = os.path.join(self.module_path, "video_data/vmaf_input_video.mp4")
+        refer_video_path = os.path.join(self.module_path, "video_data/vmaf_refer_video.mp4")
+        files = [
+            ('file_input', ('get_colour_cast_false.mp4', open(input_video_path, 'rb'), 'video/mp4')),
+            ('file_refer', ('get_colour_cast_false.mp4', open(refer_video_path, 'rb'), 'video/mp4'))
+        ]
+        response = requests.post(url=url, files=files, headers=self.headers, )
+        assert response.json()['code'] == 0
+
 
 if __name__ == '__main__':
     pytest.main(["-s", "port_test.py"])

@@ -108,6 +108,12 @@ class TestFunc(object):
         a = ImageIndex(img_bytes)
         assert a.green_frame_detect() is not None
 
+    def test_get_video_quality_vmaf(self):
+        input_video_path = os.path.join(self.module_path, "video_data/vmaf_refer_video.mp4")
+        refer_video_path = os.path.join(self.module_path, "video_data/vmaf_input_video.mp4")
+        a = PlayerIndex(video_quality_dict={"input_video": input_video_path, "refer_video": refer_video_path})
+        assert a.get_video_quality_vmaf()['vmaf_score'] is not None
+
 
 if __name__ == '__main__':
     pytest.main(["-s", "func_test.py"])

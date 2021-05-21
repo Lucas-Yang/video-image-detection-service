@@ -1,15 +1,20 @@
 """
 全参考视频质量评估，包括SSIM, PSNR, VMAF
 """
+import os
+import re
+import subprocess
+import sys
+
 import cv2
 import ffmpeg
-import re
 from skimage.metrics import structural_similarity as compare_ssim
 
 
 class VideoSSIM(object):
     """结构相似性评估类
     """
+
     def __init__(self, src_video=None, target_video=None):
         self.src_video = src_video
         self.target_video = target_video
@@ -98,6 +103,35 @@ class VideoSSIM(object):
         for frame in self.__cut_frame('/Users/luoyadong/Desktop/studio_video_1605840496434.mp4'):
             cv2.imshow("test", frame)
             cv2.waitKey(1000)
+
+
+class VideoVMAF(object):
+    """主观质量评估类
+    """
+    current_dirname = os.path.dirname(os.path.realpath(__file__))
+
+    def __init__(self, input_video=None, refer_video=None,
+                 model_path=os.path.join(current_dirname, "vmaf_v0.6.1.json")):
+        self.input_video = input_video
+        self.refer_video = refer_video
+        self.model_path = model_path
+
+    def get_video_vmaf_score(self) -> str:
+        """ 根据ffmpeg计算vmaf
+        :return:
+        """
+        stream1 = ffmpeg.input(self.input_video)
+        stream2 = ffmpeg.input(self.refer_video)
+        stream = ffmpeg.filter_([stream1, stream2], 'libvmaf', model_path=self.model_path)
+        p = subprocess.Popen(stream.output('-', format='null').compile() + ['-nostats'],
+                             stderr=subprocess.PIPE)
+        output = p.communicate()[1].decode('utf-8')
+        if p.returncode != 0:
+            sys.stderr.write(output)
+            return None
+        lines = output.splitlines()
+        vmaf_score = lines[-1].split("score:")[-1].strip()  # vmaf的分数在命令行输出的最后一行
+        return vmaf_score
 
 
 if __name__ == "__main__":

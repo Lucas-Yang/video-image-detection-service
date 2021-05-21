@@ -4,7 +4,7 @@ dao层
 from app.factory import LogManager, MyMongoClient
 from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDetector, VideoColourCastDetector
 from app.third_lib.dot_predict import DotVideoIndex
-from app.third_lib.full_reference_video_quality import VideoSSIM
+from app.third_lib.full_reference_video_quality import VideoSSIM, VideoVMAF
 from app.third_lib.image_quality import ImageQualityIndexGenerator
 
 
@@ -141,6 +141,15 @@ class PlayerIndex(object):
         video_quality_handler = VideoSSIM(src_video, target_video)
         ssim_score = video_quality_handler.get_video_ffmpeg_ssim_index()
         return {"ssim_score": ssim_score}
+
+    def get_video_quality_vmaf(self):
+        """获取视频vmaf主观质量评分
+        """
+        input_video = self.video_quality_dict.get("input_video")
+        refer_video = self.video_quality_dict.get("refer_video")
+        video_quality_handler = VideoVMAF(input_video, refer_video)
+        vmaf_score = video_quality_handler.get_video_vmaf_score()
+        return {"vmaf_score": vmaf_score}
 
     def get_silence_index(self):
         """获取音视频静音时间戳
