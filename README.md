@@ -228,6 +228,148 @@ Object{...},
 }
 ```
 
+### 3 视频静音检测
+
+- 接口描述：该接口用来检测视频是否为静音，返回结果中包括silence_start(静音开始时间)、silence_end(静音结束时间)、silence_duration(该段静音持续时间)。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/player/index/silence"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "silence_timestamps": [
+      {
+        "silence_start": 0,
+        "silence_end": 87.98,
+        "silence_duration": 87.98
+      }
+    ]
+  }
+}
+```
+
+### 4 视频质量评估VMAF
+
+- 接口描述：该接口用来获取输入视频与参考视频的质量评估，默认采用的是 v0.6.1模型，返回结果中的vmaf_score为对应的分数，该分数使用 1080p
+  显示屏，观看距离为3H。观看者对视频质量的评分为“差”，“一般”，“好”和“优秀”，粗略估计，可以认为：0～40：差；40～70：一般；70～85：好；85～100：优秀。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/player/video/vmaf"
+
+files = [
+    ('file_input', open(video_file_path, 'rb')),
+    ('file_refer', open(video_refer_path, 'rb'))
+]
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "vmaf_score": "79.948197"
+  }
+}
+```
+
+### 5 图像清晰度检测
+
+- 接口描述：该接口用来检测图像清晰度，默认采用的是NRSS算法，返回结果中的judge为对应的分数， 粗略估计，可以认为：0～0.05：不清晰；0.05~0.07：较不清晰；0.07~0.08：较清晰；0.08～1：清晰。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/image/quality/clarity-detect"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": 0.22282582851089128
+  }
+}
+```
+
+### 6 图像绿屏检测
+
+- 接口描述：该接口用来检测图像中像素的色相为绿的占比，返回结果中的green_ratio为对应的占比，details中H_value和count分别表示对应的色相号和该色相的像素个数。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/image/quality/green-frame-detect"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": {
+      "green_ratio": 1.0,
+      "details": [
+        {
+          "H_value": 93,
+          "count": 438152
+        }
+      ]
+    }
+  }
+}
+```
+
 ## 三 安装服务
 
 ## 四 其他说明
