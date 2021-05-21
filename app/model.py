@@ -182,9 +182,10 @@ class ImageIndex(object):
     """ 图像质量数据获取与存储
     """
 
-    def __init__(self, quality_file):
+    def __init__(self, quality_file, target_file=None):
         self.quality_file = quality_file
-        self.image_index_handler = ImageQualityIndexGenerator(self.quality_file)
+        self.target_file = target_file
+        self.image_index_handler = ImageQualityIndexGenerator(self.quality_file, self.target_file)
         self.__logger = LogManager("server.log").logger
 
     def black_white_frame_detection(self):
@@ -251,6 +252,13 @@ class ImageIndex(object):
         detect_res = self.image_index_handler.get_image_colorlayer()
         self.__logger.info("color_dict: {}".format(detect_res))
         return detect_res
+
+    def image_matching(self):
+        """ 通用图像匹配接口
+        """
+        match_res = self.image_index_handler.get_image_match_result()
+        self.__logger.info("image_matching_res: {}".format(match_res))
+        return match_res
 
 
 if __name__ == '__main__':

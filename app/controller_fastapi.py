@@ -6,6 +6,7 @@
 """
 import os
 import time
+import traceback
 
 from celery.result import AsyncResult
 from fastapi import APIRouter, File, UploadFile
@@ -290,7 +291,6 @@ async def get_silence_index(file_src: UploadFile = File(...)):
 @image_app.post('/quality/white-detect')
 async def judge_white_frame(file: UploadFile = File(...)):
     res_src = await file.read()
-    print(type(res_src))
     if format_handler.api_image_white_detection_checker(file):
         image_handler = ImageIndex(res_src)
         if image_handler.black_white_frame_detection():
@@ -448,3 +448,35 @@ async def colorlayer_detect(file: UploadFile = File(...)):
         return {
             "code": -1,
             "message": "input error"}
+
+
+@image_app.post('/quality/image-match')
+async def get_image_match_res(file_src: UploadFile = File(...), file_target: UploadFile = File(...)):
+    """ 图像匹配接口
+    param: file_src: 模版图像
+    param: file_target: 匹配图像
+    """
+    if format_handler.api_image_white_detection_checker(file_src) \
+            and format_handler.api_image_white_detection_checker(file_target):
+        try:
+            res_src = await file_src.read()
+            target_src = await file_target.read()
+            image_handler = ImageIndex(quality_file=res_src, target_file=target_src)
+            match_res_dict = image_handler.image_matching()
+            return {
+                    "code": 0,
+                    "message": "Success",
+                    "data": match_res_dict
+                }
+        except Exception as err:
+            traceback.print_exc()
+            return {
+                "code": -2,
+                "message": str(err)
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"
+        }
+
