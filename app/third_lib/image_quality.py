@@ -91,6 +91,8 @@ class WatermarkFrameDetector(object):
 
     @staticmethod
     def image_preporcess(image, target_size):
+        """图片处理成608*608*3
+        """
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(numpy.float32)
         ih, iw = target_size
         h, w, _ = img.shape
@@ -105,6 +107,8 @@ class WatermarkFrameDetector(object):
 
     @staticmethod
     def postprocess_boxes(pred_bbox, org_img_shape, input_size, score_threshold):
+        """将所有可能的预测信息提取出来，主要是三类：类别，可能性，坐标值
+        """
         valid_scale = [0, numpy.inf]
         pred_bbox = numpy.array(pred_bbox)
         pred_xywh = pred_bbox[:, 0:4]
@@ -138,7 +142,9 @@ class WatermarkFrameDetector(object):
 
     @staticmethod
     def bboxes_iou(boxes1, boxes2):
-        boxes1 = numpy.array(boxes1)  # 转化为数组
+        """获取真实框和预测框的交并比
+        """
+        boxes1 = numpy.array(boxes1)
         boxes2 = numpy.array(boxes2)
         boxes1_area = (boxes1[..., 2] - boxes1[..., 0]) * (boxes1[..., 3] - boxes1[..., 1])
         boxes2_area = (boxes2[..., 2] - boxes2[..., 0]) * (boxes2[..., 3] - boxes2[..., 1])
@@ -151,6 +157,8 @@ class WatermarkFrameDetector(object):
         return ious
 
     def nms(self, bboxes, iou_threshold, sigma=0.3, method='nms'):
+        """非极大值抑制：将刚刚提取出来的信息进行筛选，返回最好的预测值
+        """
         classes_in_img = list(set(bboxes[:, 5]))
         best_bboxes = []
         for cls in classes_in_img:
@@ -181,19 +189,28 @@ class WatermarkFrameDetector(object):
         image_data = self.image_preporcess(numpy.copy(self.image_data), [self.image_size, self.image_size])
         image_data_list = image_data[numpy.newaxis, :].tolist()
         headers = {"Content-type": "application/json"}
-        response = requests.post(self.__watermark_frame_check_server_url, headers=headers,
-                                 data=json.dumps({"signature_name": "predict",
-                                                  "instances": image_data_list})).json()
-        output = numpy.array(response['predictions'])
-        output = numpy.reshape(output, (-1, 11))  # 6类+1可能性+4个坐标
-        original_image_size = self.image_data.shape[:2]
-        bboxes = self.postprocess_boxes(output, original_image_size, self.image_size, 0.7)
-        bboxes = self.nms(bboxes, 0.45, method='nms')
-        for i, bbox in enumerate(bboxes):
-            class_ind = int(bbox[5])
-            self.result_list.append(self.watermark_classes[class_ind])
-        return self.result_list
-
+        try_times = 0
+        while try_times < 3:
+            try:
+                response = requests.post(self.__watermark_frame_check_server_url, headers=headers,
+                                         data=json.dumps({"signature_name": "predict",
+                                                          "instances": image_data_list})).json()
+                output = numpy.array(response['predictions'])
+                output = numpy.reshape(output, (-1, 11))  # 6类+1可能性+4个坐标
+                original_image_size = self.image_data.shape[:2]
+                bboxes = self.postprocess_boxes(output, original_image_size, self.image_size, 0.7)
+                bboxes = self.nms(bboxes, 0.45, method='nms')
+                for i, bbox in enumerate(bboxes):
+                    class_ind = int(bbox[5])
+                    self.result_list.append(self.watermark_classes[class_ind])
+                return self.result_list
+            except Exception as err:
+                print(err)
+                try_times += 1
+                continue
+        if try_times >= 3:
+            return -1
+        
 
 class ImageSplitJoint(object):
     """图像帧拼接识别类
