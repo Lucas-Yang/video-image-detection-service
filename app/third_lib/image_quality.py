@@ -90,7 +90,7 @@ class WatermarkFrameDetector(object):
         self.result_list = []
 
     @staticmethod
-    def image_preporcess(image, target_size, gt_boxes=None):
+    def image_preporcess(image, target_size):
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(numpy.float32)
         ih, iw = target_size
         h, w, _ = img.shape
@@ -101,12 +101,7 @@ class WatermarkFrameDetector(object):
         dw, dh = (iw - nw) // 2, (ih - nh) // 2
         image_paded[dh:nh + dh, dw:nw + dw, :] = image_resized
         image_paded = image_paded / 255.
-        if gt_boxes is None:
-            return image_paded
-        else:
-            gt_boxes[:, [0, 2]] = gt_boxes[:, [0, 2]] * scale + dw
-            gt_boxes[:, [1, 3]] = gt_boxes[:, [1, 3]] * scale + dh
-            return image_paded, gt_boxes
+        return image_paded
 
     @staticmethod
     def postprocess_boxes(pred_bbox, org_img_shape, input_size, score_threshold):
