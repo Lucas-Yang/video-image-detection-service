@@ -213,6 +213,14 @@ class ImageIndex(object):
         else:
             return True
 
+    def watermark_frame_detection(self):
+        """ 水印检测，目前检测抖音 快手 小红书 好看四种水印
+        :return:
+        """
+        detect_res = self.image_index_handler.get_image_watermark()
+        self.__logger.info("color_dict: {}".format(detect_res))
+        return detect_res
+
     def frame_ocr(self):
         """ 图像ocr
         :return:

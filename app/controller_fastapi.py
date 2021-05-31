@@ -356,6 +356,29 @@ async def blurred_frame_detect(file: UploadFile = File(...)):
             "message": "input error"}
 
 
+@image_app.post('/quality/watermark-detect')
+async def watermark_frame_detect(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_white_detection_checker(file):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.watermark_frame_detection()
+        if result == -1:
+            return {
+                "code": -2,
+                "message": "access model server error"
+            }
+        else:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"judge": result}
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
+
+
 @image_app.post('/quality/horizontal-frame-detect')
 async def horizontal_frame_detect(file: UploadFile = File(...)):
     res_src = await file.read()
@@ -464,10 +487,10 @@ async def get_image_match_res(file_src: UploadFile = File(...), file_target: Upl
             image_handler = ImageIndex(quality_file=res_src, target_file=target_src)
             match_res_dict = image_handler.image_matching()
             return {
-                    "code": 0,
-                    "message": "Success",
-                    "data": match_res_dict
-                }
+                "code": 0,
+                "message": "Success",
+                "data": match_res_dict
+            }
         except Exception as err:
             traceback.print_exc()
             return {
@@ -479,4 +502,3 @@ async def get_image_match_res(file_src: UploadFile = File(...), file_target: Upl
             "code": -1,
             "message": "input error"
         }
-
