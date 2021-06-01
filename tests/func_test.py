@@ -59,6 +59,20 @@ class TestFunc(object):
         a = ImageIndex(img_bytes)
         assert a.frame_ocr() is not None
 
+    def test_watermark_detect(self):
+        filename = self.module_path + '/image_data/douyin1.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.png', img)[1]
+        a = ImageIndex(img_bytes)
+        assert a.watermark_frame_detection()[0] == '抖音'
+
+    def test_no_watermark_detect(self):
+        filename = self.module_path + '/image_data/kuaishou6.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.png', img)[1]
+        a = ImageIndex(img_bytes)
+        assert len(a.watermark_frame_detection()) == 0
+
     def test_color_layer(self):
         filename = self.module_path + '/image_data/color_layer_detect2.png'
         img = cv2.imread(filename)

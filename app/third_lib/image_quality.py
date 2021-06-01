@@ -15,6 +15,7 @@ from skimage.measure import compare_ssim
 class BlurredFrameDetector(object):
     """ 花屏检测基类
     """
+
     def __init__(self, image_data):
         self.__blurred_frame_check_server_url = "http://172.22.119.82:8601/v1/models/blurred_screen_model:predict"
         self.image_data = image_data
@@ -69,6 +70,147 @@ class BlurredFrameDetector(object):
         else:
             return predict_result
 
+
+class WatermarkFrameDetector(object):
+    """水印检测类
+    """
+
+    def __init__(self, image_data):
+        self.__watermark_frame_check_server_url = "http://10.221.42.190:8501/v1/models/watermark_detect_model:predict"
+        self.image_data = image_data
+        self.image_size = 608  # 性能不行可以调到416
+        self.watermark_classes = {
+            0: '抖音',
+            1: '好看',
+            2: '小红书',
+            3: '快手',
+            4: '快手',
+            5: '小红书'
+        }
+        self.result_list = []
+
+    @staticmethod
+    def image_preporcess(image, target_size):
+        """图片处理成608*608*3
+        """
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(numpy.float32)
+        ih, iw = target_size
+        h, w, _ = img.shape
+        scale = min(iw / w, ih / h)
+        nw, nh = int(scale * w), int(scale * h)
+        image_resized = cv2.resize(img, (nw, nh))
+        image_paded = numpy.full(shape=[ih, iw, 3], fill_value=128.0)
+        dw, dh = (iw - nw) // 2, (ih - nh) // 2
+        image_paded[dh:nh + dh, dw:nw + dw, :] = image_resized
+        image_paded = image_paded / 255.
+        return image_paded
+
+    @staticmethod
+    def postprocess_boxes(pred_bbox, org_img_shape, input_size, score_threshold):
+        """将所有可能的预测信息提取出来，主要是三类：类别，可能性，坐标值
+        """
+        valid_scale = [0, numpy.inf]
+        pred_bbox = numpy.array(pred_bbox)
+        pred_xywh = pred_bbox[:, 0:4]
+        pred_conf = pred_bbox[:, 4]
+        pred_prob = pred_bbox[:, 5:]
+        pred_coor = numpy.concatenate(
+            [pred_xywh[:, :2] - pred_xywh[:, 2:] * 0.5,
+             pred_xywh[:, :2] + pred_xywh[:, 2:] * 0.5], axis=-1)
+        org_h, org_w = org_img_shape
+        resize_ratio = min(input_size / org_w, input_size / org_h)
+        dw = (input_size - resize_ratio * org_w) / 2
+        dh = (input_size - resize_ratio * org_h) / 2
+        pred_coor[:, 0::2] = 1.0 * (pred_coor[:, 0::2] - dw) / resize_ratio
+        pred_coor[:, 1::2] = 1.0 * (pred_coor[:, 1::2] - dh) / resize_ratio
+        pred_coor = numpy.concatenate(
+            [numpy.maximum(pred_coor[:, :2], [0, 0]),
+             numpy.minimum(pred_coor[:, 2:], [org_w - 1, org_h - 1])],
+            axis=-1)
+        invalid_mask = numpy.logical_or((pred_coor[:, 0] > pred_coor[:, 2]),
+                                        (pred_coor[:, 1] > pred_coor[:, 3]))
+        pred_coor[invalid_mask] = 0
+        bboxes_scale = numpy.sqrt(numpy.multiply.reduce(pred_coor[:, 2:4] - pred_coor[:, 0:2], axis=-1))
+        scale_mask = numpy.logical_and((valid_scale[0] < bboxes_scale),
+                                       (bboxes_scale < valid_scale[1]))
+        classes = numpy.argmax(pred_prob, axis=-1)
+        scores = pred_conf * pred_prob[numpy.arange(len(pred_coor)), classes]
+        score_mask = scores > score_threshold
+        mask = numpy.logical_and(scale_mask, score_mask)
+        coors, scores, classes = pred_coor[mask], scores[mask], classes[mask]
+        return numpy.concatenate([coors, scores[:, numpy.newaxis], classes[:, numpy.newaxis]], axis=-1)
+
+    @staticmethod
+    def bboxes_iou(boxes1, boxes2):
+        """获取真实框和预测框的交并比
+        """
+        boxes1 = numpy.array(boxes1)
+        boxes2 = numpy.array(boxes2)
+        boxes1_area = (boxes1[..., 2] - boxes1[..., 0]) * (boxes1[..., 3] - boxes1[..., 1])
+        boxes2_area = (boxes2[..., 2] - boxes2[..., 0]) * (boxes2[..., 3] - boxes2[..., 1])
+        left_up = numpy.maximum(boxes1[..., :2], boxes2[..., :2])  # 选出最大值
+        right_down = numpy.minimum(boxes1[..., 2:], boxes2[..., 2:])
+        inter_section = numpy.maximum(right_down - left_up, 0.0)
+        inter_area = inter_section[..., 0] * inter_section[..., 1]
+        union_area = boxes1_area + boxes2_area - inter_area
+        ious = numpy.maximum(1.0 * inter_area / union_area, numpy.finfo(numpy.float32).eps)
+        return ious
+
+    def nms(self, bboxes, iou_threshold, sigma=0.3, method='nms'):
+        """非极大值抑制：将刚刚提取出来的信息进行筛选，返回最好的预测值
+        """
+        classes_in_img = list(set(bboxes[:, 5]))
+        best_bboxes = []
+        for cls in classes_in_img:
+            cls_mask = (bboxes[:, 5] == cls)
+            cls_bboxes = bboxes[cls_mask]
+            while len(cls_bboxes) > 0:
+                max_ind = numpy.argmax(cls_bboxes[:, 4])
+                best_bbox = cls_bboxes[max_ind]
+                best_bboxes.append(best_bbox)
+                cls_bboxes = numpy.concatenate([cls_bboxes[: max_ind], cls_bboxes[max_ind + 1:]])
+                iou = self.bboxes_iou(best_bbox[numpy.newaxis, :4], cls_bboxes[:, :4])
+                weight = numpy.ones((len(iou),), dtype=numpy.float32)
+                assert method in ['nms', 'soft-nms']
+                if method == 'nms':
+                    iou_mask = iou > iou_threshold
+                    weight[iou_mask] = 0.0
+                if method == 'soft-nms':
+                    weight = numpy.exp(-(1.0 * iou ** 2 / sigma))
+                cls_bboxes[:, 4] = cls_bboxes[:, 4] * weight
+                score_mask = cls_bboxes[:, 4] > 0.
+                cls_bboxes = cls_bboxes[score_mask]
+        return best_bboxes
+
+    def get_if_watermark_frame(self):
+        """ 水印检测
+        :return:
+        """
+        image_data = self.image_preporcess(numpy.copy(self.image_data), [self.image_size, self.image_size])
+        image_data_list = image_data[numpy.newaxis, :].tolist()
+        headers = {"Content-type": "application/json"}
+        try_times = 0
+        while try_times < 3:
+            try:
+                response = requests.post(self.__watermark_frame_check_server_url, headers=headers,
+                                         data=json.dumps({"signature_name": "predict",
+                                                          "instances": image_data_list})).json()
+                output = numpy.array(response['predictions'])
+                output = numpy.reshape(output, (-1, 11))  # 6类+1可能性+4个坐标
+                original_image_size = self.image_data.shape[:2]
+                bboxes = self.postprocess_boxes(output, original_image_size, self.image_size, 0.7)
+                bboxes = self.nms(bboxes, 0.45, method='nms')
+                for i, bbox in enumerate(bboxes):
+                    class_ind = int(bbox[5])
+                    self.result_list.append(self.watermark_classes[class_ind])
+                return self.result_list
+            except Exception as err:
+                print(err)
+                try_times += 1
+                continue
+        if try_times >= 3:
+            return -1
+        
 
 class ImageSplitJoint(object):
     """图像帧拼接识别类
@@ -436,6 +578,10 @@ class ImageQualityIndexGenerator(object):
     def get_image_colorlayer(self):
         image_colorlayer_handler = ImageColorLayer(self.image_data)
         return image_colorlayer_handler.get_colorlayer_info()
+
+    def get_image_watermark(self):
+        image_watermark_handler = WatermarkFrameDetector(self.image_data)
+        return image_watermark_handler.get_if_watermark_frame()
 
     def get_image_match_result(self):
         image_matcher_handler = ImageMatcher(template_image=self.image_data, target_image=self.target_image_file)

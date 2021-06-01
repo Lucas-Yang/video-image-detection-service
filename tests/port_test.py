@@ -67,9 +67,16 @@ class TestPort(object):
     def test_color_layer(self):
         url = "http://localhost:8090/image/quality/colorlayer-detect"
         filepath = self.module_path + '/image_data/color_layer_detect2.png'
-        files = [('file', ('color_layer_detect1.png', open(filepath, 'rb'), 'image/png'))]
+        files = [('file', ('color_layer_detect2.png', open(filepath, 'rb'), 'image/png'))]
         response = requests.request("POST", url, headers=self.headers, files=files)
         assert response.text.find('"blue":"37.33%","green":"26.80%"') != -1
+
+    def test_watermark_detect(self):
+        url = "http://localhost:8090/image/quality/watermark-detect"
+        filepath = self.module_path + '/image_data/douyin1.png'
+        files = [('file', ('douyin1.png', open(filepath, 'rb'), 'image/png'))]
+        response = requests.request("POST", url, headers=self.headers, files=files)
+        assert response.text.find('抖音') != -1
 
     def test_horizontal_frame_detect(self):
         url = "http://localhost:8090/image/quality/horizontal-frame-detect"
