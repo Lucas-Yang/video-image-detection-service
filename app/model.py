@@ -188,16 +188,6 @@ class ImageIndex(object):
         self.image_index_handler = ImageQualityIndexGenerator(self.quality_file, self.target_file)
         self.__logger = LogManager("server.log").logger
 
-    def black_white_frame_detection(self):
-        """黑白屏检测
-        :return:
-        """
-        gaussian_score = self.image_index_handler.get_black_white_frame_score()
-        if gaussian_score < 10:
-            return True
-        else:
-            return False
-
     def blurred_frame_detection(self):
         """花屏检测
         0: 马赛克
@@ -250,6 +240,14 @@ class ImageIndex(object):
         :return:
         """
         detect_res = self.image_index_handler.get_green_image()
+        self.__logger.info("green_frame_detect: {}".format(detect_res))
+        return detect_res
+
+    def black_white_frame_detect(self):
+        """视频帧黑白屏检测
+        :return:
+        """
+        detect_res = self.image_index_handler.get_black_white_image()
         self.__logger.info("green_frame_detect: {}".format(detect_res))
         return detect_res
 

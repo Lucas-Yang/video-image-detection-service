@@ -288,23 +288,17 @@ async def get_silence_index(file_src: UploadFile = File(...)):
         }
 
 
-@image_app.post('/quality/white-detect')
-async def judge_white_frame(file: UploadFile = File(...)):
+@image_app.post('/quality/black_white-detect')
+async def judge_black_white_frame(file: UploadFile = File(...)):
     res_src = await file.read()
-    if format_handler.api_image_white_detection_checker(file):
+    if format_handler.api_image_checker(file.filename):
         image_handler = ImageIndex(res_src)
-        if image_handler.black_white_frame_detection():
-            return {
-                "code": 0,
-                "message": "Success",
-                "data": {"judge": True}
-            }
-        else:
-            return {
-                "code": 0,
-                "message": "Success",
-                "data": {"judge": False}
-            }
+        result = image_handler.black_white_frame_detect()
+        return {
+            "code": 0,
+            "message": "Success",
+            "data": {"judge": result}
+        }
     else:
         return {
             "code": -1,

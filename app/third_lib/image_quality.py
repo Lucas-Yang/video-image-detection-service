@@ -210,7 +210,7 @@ class WatermarkFrameDetector(object):
                 continue
         if try_times >= 3:
             return -1
-        
+
 
 class ImageSplitJoint(object):
     """图像帧拼接识别类
@@ -338,7 +338,7 @@ class GreenImage(object):
         self.width, self.height = self.image_data.size
 
     def get_green_frame(self):
-        clrs = self.image_data.getcolors()  # 默认至多得到128种像素，检测超过会返回none
+        clrs = self.image_data.getcolors(maxcolors=180 * 255 * 255)  # maxcolors修改为HSV组合的最大数
         if clrs:
             green_list = [0] * 65
             greens = 0  # 像素的色相为绿的总个数
@@ -353,6 +353,35 @@ class GreenImage(object):
                     detail = {"H_value": i + 35, "count": green_list[i]}
                     details.append(detail)
             res = {"green_ratio": greens / (self.width * self.height), "details": details}
+            return res
+        else:
+            return None
+
+
+class BlackWhiteImage(object):
+    """黑白屏类
+    """
+
+    def __init__(self, img: numpy.ndarray = None):
+        """
+        :param img: 输入图像
+        """
+        self.image_data = Image.fromarray(img)
+        self.image_data = self.image_data.convert('HSV')
+        self.width, self.height = self.image_data.size
+
+    def get_black_white_frame(self):
+        clrs = self.image_data.getcolors(maxcolors=180 * 255 * 255)  # maxcolors修改为HSV组合的最大数
+        blacks = 0
+        whites = 0
+        if clrs:
+            for clr in clrs:
+                if 0 <= clr[1][2] <= 46:
+                    blacks += clr[0]
+                if 0 <= clr[1][1] <= 30 and 221 <= clr[1][2] <= 255:
+                    whites += clr[0]
+            res = {"black_ratio": blacks / (self.width * self.height),
+                   "white_ratio": whites / (self.width * self.height)}
             return res
         else:
             return None
@@ -509,16 +538,6 @@ class ImageQualityIndexGenerator(object):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return img
 
-    def get_black_white_frame_score(self):
-        """ 判断是否是黑屏，白屏，蓝屏等
-        :return: true / false
-        """
-        gaussian_image = cv2.GaussianBlur(self.image_data,
-                                          ksize=(9, 9),
-                                          sigmaX=0,
-                                          sigmaY=0)
-        return gaussian_image.var()
-
     def get_horizontal_portrait_frame_size(self):
         """ 判断横竖屏，并获取横竖屏比例
         :return:
@@ -574,6 +593,10 @@ class ImageQualityIndexGenerator(object):
     def get_green_image(self):
         green_image_handler = GreenImage(self.image_data)
         return green_image_handler.get_green_frame()
+
+    def get_black_white_image(self):
+        black_white_image_handler = BlackWhiteImage(self.image_data)
+        return black_white_image_handler.get_black_white_frame()
 
     def get_image_colorlayer(self):
         image_colorlayer_handler = ImageColorLayer(self.image_data)

@@ -38,8 +38,8 @@ class TestPort(object):
         # print(response.json())
         assert response.json()['code'] == 0
 
-    def test_judge_white_frame(self):
-        url = "http://127.0.0.1:8090/image/quality/white-detect"
+    def test_judge_black_white_frame(self):
+        url = "http://localhost:8090/image/quality/black_white-detect"
         filepath = self.module_path + '/image_data/white.jpg'
         files = [('file', ('white.jpg', open(filepath, 'rb'), 'image/png'))]
         response = requests.post(url=url, files=files, headers=self.headers, )
@@ -49,8 +49,8 @@ class TestPort(object):
 
     def test_horizontal_frame_detect(self):
         url = "http://127.0.0.1:8090/image/quality/horizontal-frame-detect"
-        filepath = self.module_path + '/image_data/horizontal.png'
-        files = [('file', ('horizontal.png', open(filepath, 'rb'), 'image/png'))]
+        filepath = self.module_path + '/image_data/black.png'
+        files = [('file', ('black.png', open(filepath, 'rb'), 'image/png'))]
         response = requests.post(url=url, files=files, headers=self.headers, )
         assert response.status_code == 200
         assert response.json()['code'] == 0
