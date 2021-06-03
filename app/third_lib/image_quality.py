@@ -338,7 +338,7 @@ class GreenImage(object):
         self.width, self.height = self.image_data.size
 
     def get_green_frame(self):
-        clrs = self.image_data.getcolors()  # 默认至多得到128种像素，检测超过会返回none
+        clrs = self.image_data.getcolors(maxcolors=180 * 255 * 255)  # maxcolors修改为HSV组合的最大数
         if clrs:
             green_list = [0] * 65
             greens = 0  # 像素的色相为绿的总个数
