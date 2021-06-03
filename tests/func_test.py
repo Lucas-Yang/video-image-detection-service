@@ -21,14 +21,14 @@ class TestFunc(object):
         img = cv2.imread(filename)
         img_bytes = cv2.imencode('.jpg', img)[1]
         a = ImageIndex(img_bytes)
-        assert a.black_white_frame_detection() is True
+        assert round(a.black_white_frame_detect()["white_ratio"], 2) == 1
 
     def test_black_white_frame_detection_false(self):
-        filename = self.module_path + '/image_data/normal.jpg'
+        filename = self.module_path + '/image_data/black.png'
         img = cv2.imread(filename)
-        img_bytes = cv2.imencode('.jpg', img)[1]
+        img_bytes = cv2.imencode('.png', img)[1]
         a = ImageIndex(img_bytes)
-        assert a.black_white_frame_detection() is False
+        assert round(a.black_white_frame_detect()["black_ratio"], 2) == 1
 
     def test_blurred_frame_detection_false(self):
         filename = self.module_path + '/image_data/white.jpg'
