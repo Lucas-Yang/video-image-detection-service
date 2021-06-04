@@ -128,6 +128,25 @@ class TestFunc(object):
         a = PlayerIndex(video_quality_dict={"input_video": input_video_path, "refer_video": refer_video_path})
         assert a.get_video_quality_vmaf()['vmaf_score'] is not None
 
+    def test_get_video_ssim(self):
+        file_src_path = self.module_path + '/video_data/get_colour_cast_false.mp4'
+        file_target_path = self.module_path + '/video_data/get_colour_cast_false.mp4'
+        a = PlayerIndex(video_quality_dict={"src_video": file_src_path, "target_video": file_target_path})
+        assert a.get_video_quality()['ssim_score'] == 1.0
+
+    def test_get_image_match_res(self):
+        file_src_path = self.module_path + '/image_data/horizontal_frame_detect_false.png'
+        file_target_path = self.module_path + '/image_data/horizontal_frame_detect_false.png'
+        res_src = open(file_src_path, 'rb').read()
+        target_src = open(file_target_path, 'rb').read()
+        a = ImageIndex(quality_file=res_src, target_file=target_src)
+        assert a.image_matching()["match_coordinates"][0] == 359
+
+    def test_get_silence_index(self):
+        file_path = self.module_path + '/image_data/silence.mp3'
+        a = PlayerIndex(silence_info_dict={"video_path": file_path})
+        assert a.get_silence_index()["silence_timestamps"][0]["silence_duration"] == 74.0484
+
 
 if __name__ == '__main__':
     pytest.main(["-s", "func_test.py"])
