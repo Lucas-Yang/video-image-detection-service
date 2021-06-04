@@ -12,7 +12,8 @@
 |      | 音视频帧差异 |
 |      | 视频基础数据 |
 |      | ijk进程CPU占用 |
-|      | ijk进程内存占用|
+|      | ijk进程内存占用 |
+|      | 异步接口 |
 | 视频显式指标 | 粉版播放器首帧时间  |
 |      | 粉版app启动时间(双端)  |
 |      | 爱奇艺启动时间(双端)  |
@@ -24,17 +25,22 @@
 |      | 花屏时间戳列表(暂未上线)|
 |      | 黑屏时间段列表|
 |      | 音画不同步检测(暂未上线)|
-|      | 静音检测|
+|      | 静音检测(初版上线)| 
+|      | 色差检测(初版上线)|
+|      | 相似度检测(初版上线)|
 | 视频质量指标|全参考视频质量指标： SSIM|
 |      |全参考视频质量指标： Vmaf(暂没上线)|
 |      |全参考视频质量指标： PSNR(暂没上线)|
 | 图像指标|蓝屏，黑屏，绿屏检测|
 |       |bilibili错误检测(暂未上线)|
 |       |花屏检测(轻视频版本上线，其他需求待适配开发)|
-|       |图像相似度检测(暂未上线)|
+|       |图像模板匹配(初版上线)|
 |       |图像OCR(初版上线)|
+|       |黑屏 白屏检测(初版上线)|
+|       |过度渲染检测(初版上线)|
 |       |横竖屏检测-运营中心(初版上线)|
 |       |清晰度检测-运营中心(初版上线)|
+|       |水印检测-运营中心(初版上线)|
 
 ## 二 服务接口
 
@@ -370,6 +376,266 @@ print(response.text.encode('utf8'))
 }
 ```
 
+### 7 图像水印检测
+
+- 接口描述：该接口用来检测图像是否存在水印及水印的类别，采用Yolov3算法和tensorflow-serving用于部署。 返回结果是否存在水印：否（空列表）；是（抖音 快手 好看 小红书）四种当前版本的水印类型。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://localhost:8090/image/quality/watermark-detect"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": [
+      "好看"
+    ]
+  }
+}
+```
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": []
+  }
+}
+```
+
+### 8 过度渲染检测
+
+- 接口描述：该接口用来检测图像被渲染了几次，是否在感官上使人不适。 分为绿色（渲染一次），蓝色（渲染两次），浅红色（渲染三次），深红色（渲染四次）。 其中绿色 蓝色 浅红目前可接受，深红色需要检测出来后进行修改。 返回结果为绿色 蓝色
+  浅红色图层的比例（具体数值），深红色为是否存在。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://localhost:8090/image/quality/colorlayer-detect"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": {
+      "blue": "36.50%",
+      "green": "32.42%",
+      "red": "30.55%",
+      "exist_deep_red": true
+    }
+  }
+}
+```
+
+### 9 黑白屏检测
+
+- 接口描述：该接口用来检测图像是否为黑白屏。返回结果为黑色 白色像素在图像中所占的比值。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://localhost:8090/image/quality/black_white-detect"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": {
+      "black_ratio": 0.9997608481262328,
+      "white_ratio": 0.0
+    }
+  }
+}
+```
+
+### 10 色差检测
+
+- 接口描述：该接口用来检测图像是否发生色差。由于机器的色域不同，同一视频在不同机器上可能会发生偏色，目前色域为BT2020的视频在上传后会发生偏色。返回结果为该视频上传后是否会偏色及色域类型。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://localhost:8090/player/video/colorcast-detect"
+
+files = {"file_src": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": true,
+    "color_primaries": "bt2020"
+  }
+}
+```
+
+### 11 图像花屏检测
+
+- 接口描述：该接口用来检测图像是否为花屏。返回结果是或否。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/image/quality/blurred-detect"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "judge": true
+  }
+}
+```
+
+### 12 图像相似度检测
+
+- 接口描述：该接口用来检测视频或图像的相似度。返回结果为相似度的数值。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/player/video/ssim"
+
+files = {"file_src": open(filepath_src, "rb"), "file_target": open(filepath_target, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "ssim_score": 1.0
+  }
+}
+```
+
+### 13 图像匹配
+
+- 接口描述：该接口用来检测模板图像和目标图像的匹配。结果返回模板图像在目标图像中的中心坐标（匹配成功）或空列表（匹配失败）
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://localhost:8090/image/quality/image-match"
+
+files = {"file_src": open(filepath_src, "rb"), "file_target": open(filepath_target, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+### 13 图像OCR
+
+- 接口描述：该接口用来检测图像中的文字。结果返回图像中检测到的文字。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://localhost:8090/image/quality/image-match"
+
+files = {"file": open(filepath, "rb")}
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "ocr_result": [
+      "园与"
+    ]
+  }
+}
+```
+
 ## 三 安装服务
 
 ## 四 其他说明
@@ -379,7 +645,6 @@ print(response.text.encode('utf8'))
 - 视频帧太多，不需要每一帧都输出，可以适当删除一些帧(解决)
 - 分帧效率太低，一边分帧一边预测(解决)
 - 预测服务效率低，调研tensorflow serving的效率(解决)
-- 黑屏，花屏，卡顿预测暂时没有上线(卡顿 黑屏以及上线)
 
 docker打包：
 
