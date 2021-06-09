@@ -553,6 +553,7 @@ class ImageQualityIndexGenerator(object):
         __img_std = CnStd()
         __img_ocr = CnOcr(name=str(now))
         image = Image.fromarray(self.image_data)  # 先转格式为Image 为了统一输入图像尺寸
+        """
         if (image.size[0] * image.size[1]) > 20000:
             predict_image = image.resize(
                 (int(image.size[0] * 0.5), int(image.size[1] * 0.5)),
@@ -560,12 +561,14 @@ class ImageQualityIndexGenerator(object):
             )
         else:
             predict_image = image
-        img = numpy.asarray(predict_image)
+        """
+        img = numpy.asarray(image)
         box_info_list = __img_std.detect(img, pse_min_area=500)
         print(time.time() - now)
         ocr_result_list = []
         for box_info in box_info_list:
             cropped_img = box_info['cropped_img']
+            cropped_img = cv2.flip(cropped_img, -1)
             ocr_res = __img_ocr.ocr_for_single_line(cropped_img)
             ocr_result_list.append(''.join(ocr_res))
         print(time.time() - now)
