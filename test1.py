@@ -1,8 +1,13 @@
 import os
+import time
+
 import cv2
 
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL.Image import Image
+from cnocr import CnOcr
+from cnstd import CnStd
 
 from scipy.ndimage import variance
 from skimage import io
@@ -140,7 +145,58 @@ class BlurredImageChecker(object):
         cv2.imshow("croped", croped)
         cv2.waitKey()
 
+    @staticmethod
+    def get_ocr_result_list(image_path):
+        """ 图像ocr
+        :return:
+        """
+        now = time.time()
+        __img_std = CnStd()
+        __img_ocr = CnOcr(name=str(now))
+
+        img = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2GRAY)
+        """
+        image = Image.fromarray(image_data)  # 先转格式为Image 为了统一输入图像尺寸
+        if (image.size[0] * image.size[1]) > 20000:
+            predict_image = image.resize(
+                (int(image.size[0] * 0.5), int(image.size[1] * 0.5)),
+                Image.NEAREST
+            )
+        else:
+            predict_image = image
+        img = np.asarray(predict_image)
+        """
+        box_info_list = __img_std.detect(image_path, pse_min_area=500)
+        print(time.time() - now)
+        ocr_result_list = []
+        for box_info in box_info_list:
+            cropped_img = box_info['cropped_img']
+            ocr_res = __img_ocr.ocr_for_single_line(cropped_img)
+            ocr_result_list.append(''.join(ocr_res))
+        print(ocr_result_list)
+        print(time.time() - now)
+        del __img_std
+        del __img_ocr
+        return ocr_result_list
+
+    @staticmethod
+    def ocr_test(image_path):
+        """
+        """
+        t1 = time.time()
+        std = CnStd()
+        cn_ocr = CnOcr()
+
+        box_info_list = std.detect(image_path, max_size=680, pse_min_area=500)
+        print(time.time() - t1)
+        for box_info in box_info_list:
+            cropped_img = box_info['cropped_img']  # 检测出的文本框
+            cropped_img = cv2.flip(cropped_img, -1)
+            # cv2.imwrite('res.png', cropped_img)
+            ocr_res = cn_ocr.ocr_for_single_line(cropped_img)
+            print('ocr result: %s' % ''.join(ocr_res))
+        print(time.time() - t1)
+
 
 if __name__ == '__main__':
-    print(1)
-    BlurredImageChecker().alpha_detect('1.png')
+    BlurredImageChecker().ocr_test('1.jpeg')
