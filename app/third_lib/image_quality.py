@@ -564,14 +564,12 @@ class ImageQualityIndexGenerator(object):
         """
         img = numpy.asarray(image)
         box_info_list = __img_std.detect(img, pse_min_area=500)
-        print(time.time() - now)
         ocr_result_list = []
         for box_info in box_info_list:
             cropped_img = box_info['cropped_img']
             cropped_img = cv2.flip(cropped_img, -1)
             ocr_res = __img_ocr.ocr_for_single_line(cropped_img)
-            ocr_result_list.append(''.join(ocr_res))
-        print(time.time() - now)
+            ocr_result_list.append({'text': ''.join(ocr_res), 'coordinate': numpy.mean(box_info['box'], axis=0).tolist()})
         del __img_std
         del __img_ocr
         return ocr_result_list
