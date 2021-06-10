@@ -17,7 +17,7 @@ class BlurredFrameDetector(object):
     """
 
     def __init__(self, image_data):
-        self.__blurred_frame_check_server_url = "http://172.22.119.82:8601/v1/models/blurred_screen_model:predict"
+        self.__blurred_frame_check_server_url = "http://10.221.42.190:8601/v1/models/blurred_screen_model:predict"
         self.image_data = image_data
 
     @staticmethod
