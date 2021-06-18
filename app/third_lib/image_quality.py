@@ -563,7 +563,7 @@ class ImageQualityIndexGenerator(object):
             predict_image = image
         """
         img = numpy.asarray(image)
-        box_info_list = __img_std.detect(img, pse_min_area=500)
+        box_info_list = __img_std.detect(img, max_size=1000, pse_min_area=500)
         ocr_result_list = []
         for box_info in box_info_list:
             cropped_img = box_info['cropped_img']

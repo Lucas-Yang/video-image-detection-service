@@ -187,14 +187,14 @@ class BlurredImageChecker(object):
         std = CnStd()
         cn_ocr = CnOcr()
 
-        box_info_list = std.detect(image_path, max_size=680, pse_min_area=500)
+        box_info_list = std.detect(image_path, max_size=1000, pse_min_area=500)
         print(time.time() - t1)
         for box_info in box_info_list:
             # print(box_info)
             cropped_img = box_info['cropped_img']  # 检测出的文本框
             box_list = np.mean(box_info['box'], axis=0)
-            print(box_list)
-            break
+            # print(box_list)
+            # break
             cropped_img = cv2.flip(cropped_img, -1)
             # cv2.imwrite('res.png', cropped_img)
             ocr_res = cn_ocr.ocr_for_single_line(cropped_img)
@@ -203,4 +203,4 @@ class BlurredImageChecker(object):
 
 
 if __name__ == '__main__':
-    BlurredImageChecker().ocr_test('1.png')
+    BlurredImageChecker().ocr_test('/Users/luoyadong/Desktop/1.png')
