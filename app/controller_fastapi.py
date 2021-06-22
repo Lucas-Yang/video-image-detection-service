@@ -360,11 +360,17 @@ async def caculate_similarity(file_src: UploadFile = File(...),
             format_handler.api_image_white_detection_checker(file_target):
         image_handler = ImageIndex(res_src,target_file=res_tar)
         similarity_result = image_handler.caculate_similarity()
-        return {
-            "code": 0,
-            "message": "Success",
-            "data": {"feature_sim_score": similarity_result}
-        }
+        if similarity_result == -1:
+            return {
+                "code": -2,
+                "message": "输入的图像没有关键点，无法计算相似性"
+            }
+        else:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"feature_sim_score": similarity_result}
+            }
     else:
         return {
             "code": -1,

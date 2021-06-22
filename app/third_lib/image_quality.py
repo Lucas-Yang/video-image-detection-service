@@ -515,7 +515,7 @@ class ImageMatcher(object):
 
 
 
-class ORB_similarity(object):
+class ORBSimilarity(object):
     """
     利用ORB算法计算两张图像的相似性
     """
@@ -538,9 +538,11 @@ class ORB_similarity(object):
                 goodMatch.append(m)
         l1 = len(goodMatch)
         l2 = len(matches)
-        similary = l1 / l2
-
-        return similary
+        if l2 == 0:
+            return -1
+        else:
+            similary = l1 / l2
+            return similary
 
 
 
@@ -616,7 +618,7 @@ class ImageQualityIndexGenerator(object):
         """ 图像结构相似度相似度
         :return:
         """
-        image_similarity_handler = ORB_similarity(self.image_data,self.target_image_file)
+        image_similarity_handler = ORBSimilarity(self.image_data,self.target_image_file)
         return image_similarity_handler.get_similarity()
 
     def get_image_clarity(self):
