@@ -9,7 +9,7 @@ import time
 import traceback
 
 from celery.result import AsyncResult
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, UploadFile, Form
 
 from app.data import DotItem
 from app.factory import FormatChecker, LogManager
@@ -42,10 +42,10 @@ def get_dot_index(item: DotItem):
 
 
 @player_app.post("/video/upload")
-async def file_upload(index_types: list, file: UploadFile = File(...)):
+async def file_upload(index_types: list, black_threshold: float = Form(0.999), file: UploadFile = File(...)):
     try:
         res = await file.read()
-        if not format_handler.video_index_cv_check(index_types, file):
+        if not format_handler.video_index_cv_check(index_types, black_threshold, file):
             raise Exception("input error")
         else:
             base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
@@ -56,7 +56,8 @@ async def file_upload(index_types: list, file: UploadFile = File(...)):
             with open(file_path, "wb") as f:
                 f.write(res)
             logger.info(file_path)
-            r = cv_index_task.delay({"temp_video_path": file_path, "index_types": index_types})
+            r = cv_index_task.delay({"temp_video_path": file_path, "index_types": index_types,
+                                     "black_threshold": black_threshold})
             task_id = r.task_id
             return {
                 "code": 0,
@@ -517,3 +518,10 @@ async def get_image_match_res(file_src: UploadFile = File(...), file_target: Upl
             "code": -1,
             "message": "input error"
         }
+
+
+@image_app.get('/ping')
+async def ping():
+    """ 路由探活
+    """
+    return {"code": 0, "message": "success"}
