@@ -29,16 +29,3 @@ RUN export COLUMNS=80
 EXPOSE 8090
 
 CMD ["sh", "/home/work/my_app/begin.sh"]
-
-
-
-USER work
-COPY --chown=work:work . .
-COPY --chown=work:work model /home/work
-COPY --chown=work:work model /home/work
-
-RUN export C_FORCE_ROOT="true"
-RUN export COLUMNS=80
-EXPOSE 8090
-
-CMD ["sh", "/home/work/my_app/begin.sh"]
