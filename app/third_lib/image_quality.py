@@ -514,6 +514,37 @@ class ImageMatcher(object):
         return {"match_coordinates": central_coordinates}
 
 
+
+class ORB_similarity(object):
+    """
+    利用ORB算法计算两张图像的相似性
+    """
+    def __init__(self, src_image, target_image):
+        self.__src_image = cv2.cvtColor(src_image, cv2.COLOR_RGB2GRAY)
+        self.__target_image = cv2.cvtColor(target_image, cv2.COLOR_RGB2GRAY)
+
+    def get_similarity(self):
+        finder = cv2.ORB_create()
+        kp1, des1 = finder.detectAndCompute(self.__src_image, None)
+        kp2, des2 = finder.detectAndCompute(self.__target_image, None)
+        bf = cv2.BFMatcher(normType=cv2.NORM_HAMMING)
+        matches = bf.knnMatch(des1, trainDescriptors=des2, k=2)
+
+        goodMatch = []
+        for m, n in matches:
+            # goodMatch是经过筛选的优质配对，如果2个配对中第一匹配的距离小于第二匹配的距离的7/10，
+            # 基本可以说明这个第一配对是两幅图像中独特的，不重复的特征点,可以保留。
+            if m.distance < 0.7 * n.distance:
+                goodMatch.append(m)
+        l1 = len(goodMatch)
+        l2 = len(matches)
+        similary = l1 / l2
+
+        return similary
+
+
+
+
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
     """
@@ -585,7 +616,8 @@ class ImageQualityIndexGenerator(object):
         """ 图像结构相似度相似度
         :return:
         """
-        pass
+        image_similarity_handler = ORB_similarity(self.image_data,self.target_image_file)
+        return image_similarity_handler.get_similarity()
 
     def get_image_clarity(self):
         image_clarity_handler = ImageClarity(self.image_data)
