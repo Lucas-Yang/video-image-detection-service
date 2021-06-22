@@ -496,3 +496,10 @@ async def get_image_match_res(file_src: UploadFile = File(...), file_target: Upl
             "code": -1,
             "message": "input error"
         }
+
+
+@image_app.get('/ping')
+async def ping():
+    """ 路由探活
+    """
+    return {"code": 0, "message": "success"}
