@@ -1,6 +1,7 @@
 """
 接口单元测试
 """
+import json
 import os
 
 import pytest
@@ -131,6 +132,18 @@ class TestPort(object):
                  ('file_target', ('horizontal_frame_detect_false.png', open(file_target_path, 'rb'), 'image/png'))]
         response = requests.request("POST", url, headers=self.headers, files=files)
         assert response.json()['code'] == 0
+
+    def test_get_video_black(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + '/video_data/black.mp4'
+        files = [('file', ('black.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'BLACKFRAME',
+                   'black_threshold': '0.9'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+        response = requests.request("GET", cv_index_url, headers=self.headers)
+        assert response.json()['code'] == -4  # 异步执行这里会阻塞
 
 
 if __name__ == '__main__':

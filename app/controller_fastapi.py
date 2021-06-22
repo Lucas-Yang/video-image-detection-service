@@ -9,7 +9,7 @@ import time
 import traceback
 
 from celery.result import AsyncResult
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, UploadFile, Form
 
 from app.data import DotItem
 from app.factory import FormatChecker, LogManager
@@ -42,7 +42,7 @@ def get_dot_index(item: DotItem):
 
 
 @player_app.post("/video/upload")
-async def file_upload(index_types: list, black_threshold=0.999, file: UploadFile = File(...)):
+async def file_upload(index_types: list, black_threshold: float = Form(0.999), file: UploadFile = File(...)):
     try:
         res = await file.read()
         if not format_handler.video_index_cv_check(index_types, black_threshold, file):
