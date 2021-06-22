@@ -545,8 +545,6 @@ class ORBSimilarity(object):
             return similary
 
 
-
-
 class ImageQualityIndexGenerator(object):
     """ 图像质量指标库
     """
