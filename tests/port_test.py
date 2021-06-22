@@ -2,6 +2,7 @@
 接口单元测试
 """
 import os
+import time
 
 import pytest
 import requests
@@ -131,6 +132,26 @@ class TestPort(object):
                  ('file_target', ('horizontal_frame_detect_false.png', open(file_target_path, 'rb'), 'image/png'))]
         response = requests.request("POST", url, headers=self.headers, files=files)
         assert response.json()['code'] == 0
+
+    def test_get_video_black(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = "/Users/jf/PycharmProjects/player-index-server/tests/video_data/black.mp4"
+        files = [('file', ('black.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'BLACKFRAME',
+                   'black_threshold': '0.9'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["black_frame_list"][0]['black_duration'] == '59.96'
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
 
 
 if __name__ == '__main__':

@@ -177,7 +177,7 @@ class FormatChecker(object):
             return False
         return True
 
-    def video_index_cv_check(self, index_types, file):
+    def video_index_cv_check(self, index_types, black_threshold, file):
         """ fastapi upload接口参数校验
         :param index_types:
         :param file:
@@ -192,6 +192,8 @@ class FormatChecker(object):
                                 )
             else:
                 continue
+        if not 0 <= black_threshold <= 1:
+            raise Exception("The threshold should be between 0 and 1")
         allowed_formats = ('mp4', 'MP4', 'mkv', 'MKV', 'AVI', 'avi', 'flv', 'FLV', 'mkv',
                            'MKV', 'mov', 'MOV', 'mpeg', 'MPEG', 'mpg', 'MPG', 'wmv', 'WMV')
         if self.format_check(file.filename, allowed_formats):

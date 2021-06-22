@@ -225,12 +225,13 @@ class PlayerBlackScreenWatcher(object):
         """
         black_result_list = []
         temp_video_path = self.video_info_dict.get("temp_video_path", None)
+        black_threshold = self.video_info_dict.get("black_threshold", 0.999)
         if temp_video_path:
             out, err = (
                 ffmpeg
                     .input(temp_video_path)
                     # pix_th默认为0，10，指黑色像素阈值
-                    .filter('blackdetect', d=0.5, pic_th=0.999, pix_th=0.05)
+                    .filter('blackdetect', d=0.5, pic_th=black_threshold, pix_th=0.05)
                     .output('pipe:', format='null')
                     .run(quiet=True, capture_stdout=True)
             )
