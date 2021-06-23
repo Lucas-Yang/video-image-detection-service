@@ -203,6 +203,13 @@ class ImageIndex(object):
         else:
             return True
 
+    def caculate_similarity(self):
+        """计算两幅图像的相似度
+        :return:
+        """
+        predict_result = self.image_index_handler.get_image_ssim()
+        return predict_result
+
     def watermark_frame_detection(self):
         """ 水印检测，目前检测抖音 快手 小红书 好看四种水印
         :return:

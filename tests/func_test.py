@@ -142,6 +142,14 @@ class TestFunc(object):
         a = ImageIndex(quality_file=res_src, target_file=target_src)
         assert a.image_matching()["match_coordinates"][0] == 359
 
+    def test_get_image_ssim(self):
+        file_src_path = self.module_path + '/image_data/similarity_src.png'
+        file_target_path = self.module_path + '/image_data/similarity_target.png'
+        res_src = open(file_src_path, 'rb').read()
+        target_src = open(file_target_path, 'rb').read()
+        a = ImageIndex(quality_file=res_src, target_file=target_src)
+        assert a.caculate_similarity() == 0.03
+
     def test_get_silence_index(self):
         file_path = self.module_path + '/image_data/silence.mp3'
         a = PlayerIndex(silence_info_dict={"video_path": file_path})
