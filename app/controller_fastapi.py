@@ -353,12 +353,12 @@ async def blurred_frame_detect(file: UploadFile = File(...)):
 
 @image_app.post('/quality/similarity')
 async def caculate_similarity(file_src: UploadFile = File(...),
-                                file_target: UploadFile = File(...)):
+                              file_target: UploadFile = File(...)):
     res_src = await file_src.read()
     res_tar = await file_target.read()
     if format_handler.api_image_white_detection_checker(file_src) and \
             format_handler.api_image_white_detection_checker(file_target):
-        image_handler = ImageIndex(res_src,target_file=res_tar)
+        image_handler = ImageIndex(res_src, target_file=res_tar)
         similarity_result = image_handler.caculate_similarity()
         if similarity_result == -1:
             return {
@@ -375,7 +375,6 @@ async def caculate_similarity(file_src: UploadFile = File(...),
         return {
             "code": -1,
             "message": "input error"}
-
 
 
 @image_app.post('/quality/watermark-detect')
