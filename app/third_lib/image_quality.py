@@ -579,7 +579,7 @@ class ImageQualityIndexGenerator(object):
         """
         __img_std = CnStd()
         __img_ocr = CnOcr(name=str(random.random()))
-        self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2RGB)
+        self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2BGR)
         box_info_list = __img_std.detect(self.image_data)
         ocr_result_list = []
         for box_info in box_info_list:
