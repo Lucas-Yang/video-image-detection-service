@@ -1,10 +1,9 @@
 """ 图像质量检测库
 """
 import json
-import time
-
 import cv2
 import numpy
+import random
 import requests
 from PIL import Image
 from cnocr import CnOcr
@@ -15,7 +14,6 @@ from skimage.measure import compare_ssim
 class BlurredFrameDetector(object):
     """ 花屏检测基类
     """
-
     def __init__(self, image_data):
         self.__blurred_frame_check_server_url = "http://10.221.42.190:8601/v1/models/blurred_screen_model:predict"
         self.image_data = image_data
@@ -514,7 +512,6 @@ class ImageMatcher(object):
         return {"match_coordinates": central_coordinates}
 
 
-
 class ORBSimilarity(object):
     """
     利用ORB算法计算两张图像的相似性
@@ -580,25 +577,13 @@ class ImageQualityIndexGenerator(object):
         """ 图像ocr
         :return:
         """
-        now = time.time()
         __img_std = CnStd()
-        __img_ocr = CnOcr(name=str(now))
-        # image = Image.fromarray(self.image_data)  # 先转格式为Image 为了统一输入图像尺寸
-        """
-        if (image.size[0] * image.size[1]) > 20000:
-            predict_image = image.resize(
-                (int(image.size[0] * 0.5), int(image.size[1] * 0.5)),
-                Image.NEAREST
-            )
-        else:
-            predict_image = image
-        """
-        # img = numpy.asarray(image)
-        box_info_list = __img_std.detect(self.image_data, max_size=1050, pse_min_area=500)
+        __img_ocr = CnOcr(name=str(random.random()))
+        self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2RGB)
+        box_info_list = __img_std.detect(self.image_data)
         ocr_result_list = []
         for box_info in box_info_list:
             cropped_img = box_info['cropped_img']
-            cropped_img = cv2.flip(cropped_img, -1)
             ocr_res = __img_ocr.ocr_for_single_line(cropped_img)
             ocr_result_list.append({'text': ''.join(ocr_res), 'coordinate': numpy.mean(box_info['box'], axis=0).tolist()})
         del __img_std
