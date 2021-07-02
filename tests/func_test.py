@@ -14,6 +14,7 @@ class TestFunc(object):
     """ 函数接口测试类
     """
     module_path = os.path.dirname(__file__)
+    
     # 函数必须以test_打头
     def test_black_white_frame_detection_true(self):
         filename = self.module_path + '/image_data/white.jpg'
