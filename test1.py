@@ -201,6 +201,16 @@ class BlurredImageChecker(object):
             print('ocr result: %s' % ''.join(ocr_res))
         print(time.time() - t1)
 
+    @staticmethod
+    def cor():
+        import requests
+        url = "http://localhost:8090/image/quality/char-recognize"
+        file_src_path = '/Users/luoyadong/Desktop/弹框素材/bc97abe359d4928aa684602be65e3712197bdc39.png'
+        file_target_path = './tests/image_data/horizontal_frame_detect_false.png'
+        files = [('file', ('horizontal_frame_detect_false.png', open(file_src_path, 'rb'), 'image/png'))]
+        response = requests.request("POST", url, files=files, timeout=50)
+        print(response.json())
+
 
 if __name__ == '__main__':
-    BlurredImageChecker().ocr_test('/Users/luoyadong/Desktop/1.png')
+    BlurredImageChecker().cor()

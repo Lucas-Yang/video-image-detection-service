@@ -580,10 +580,12 @@ class ImageQualityIndexGenerator(object):
         __img_std = CnStd()
         __img_ocr = CnOcr(name=str(random.random()))
         self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_RGB2BGR)
-        box_info_list = __img_std.detect(self.image_data)
+        box_info_list = __img_std.detect(self.image_data, pse_min_area=500)
         ocr_result_list = []
-        for box_info in box_info_list:
+        for index, box_info in enumerate(box_info_list):
             cropped_img = box_info['cropped_img']
+            # cropped_img = cv2.flip(cropped_img, -1)
+            # cv2.imwrite("{}.png".format(index), cropped_img)
             ocr_res = __img_ocr.ocr_for_single_line(cropped_img)
             ocr_result_list.append({'text': ''.join(ocr_res), 'coordinate': numpy.mean(box_info['box'], axis=0).tolist()})
         del __img_std
