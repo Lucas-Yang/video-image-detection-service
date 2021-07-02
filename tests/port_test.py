@@ -84,6 +84,13 @@ class TestPort(object):
         response = requests.request("POST", url, headers=self.headers, files=files)
         assert response.text.find('true') != -1
 
+    def test_frame_orc(self):
+        url = "http://localhost:8090/image/quality/char-recognize"
+        filepath = self.module_path + '/image_data/ocr.jpg'
+        files = [('file', ('ocr.jpg', open(filepath, 'rb'), 'image/png'))]
+        response = requests.request("POST", url, headers=self.headers, files=files)
+        assert response.json()['code'] == 0
+
     def test_get_colour_cast(self):
         url = "http://localhost:8090/player/video/colorcast-detect"
         filepath = self.module_path + '/video_data/get_colour_cast_true.mov'
@@ -161,6 +168,159 @@ class TestPort(object):
             if ctr > 120:
                 raise TimeoutError("Time out")
             time.sleep(10)
+
+    def test_get_video_startapp(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/startapp.mp4"
+        files = [('file', ('startapp.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'STARTAPP'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["start_app_time"] == 1.3125
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+
+    def test_get_video_startappyouku(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/startyouku.mp4"
+        files = [('file', ('startyouku.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'STARTAPPYOUKU'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["start_app_time"] == 5.90625
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+    
+    def test_get_video_startappxigua(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/startxigua.mp4"
+        files = [('file', ('startxigua.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'STARTAPPIXIGUA'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["start_app_time"] == 2.0625
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+    
+    def test_get_video_startapptencent(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/starttencent.mp4"
+        files = [('file', ('starttencent.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'STARTAPPTENCENT'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["start_app_time"] == 6.09375
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+    
+    def test_get_video_startappiqiyi(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/startiqiyi.mp4"
+        files = [('file', ('startiqiyi.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'STARTAPPIQIYI'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["start_app_time"] == 5.53125
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+    
+    def test_get_video_startappdouyin(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/startdouyin.mp4"
+        files = [('file', ('startdouyin.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'STARTAPPDOUYIN'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["start_app_time"] == 4.3125
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+    
+    def test_get_video_freezeframe(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/freezeframe.mp4"
+        files = [('file', ('freezeframe.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'FREEZEFRAME'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]['freeze_frame_list'][0]['freeze_start_time'] == '3.84'
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+    
+    def test_get_video_firstframe(self):
+        upload_url = "http://localhost:8090/player/video/upload"
+        file_path = self.module_path + "/video_data/firstframe.mp4"
+        files = [('file', ('firstframe.mp4', open(file_path, 'rb'), 'video/mp4'))]
+        payload = {'index_types': 'FIRSTFRAME'}
+        response = requests.request("POST", upload_url, headers=self.headers, data=payload, files=files)
+        assert response.json()['code'] == 0
+        ctr = 0
+        while True:
+            ctr += 1
+            cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
+            result = requests.request("GET", cv_index_url, headers=self.headers)
+            if result.json()["code"] != -4:
+                assert result.json()["data"]["first_frame_time"] == -1
+                return
+            if ctr > 120:
+                raise TimeoutError("Time out")
+            time.sleep(10)
+
 
 if __name__ == '__main__':
     pytest.main(["-s", "port_test.py"])
