@@ -14,6 +14,7 @@ from skimage.measure import compare_ssim
 class BlurredFrameDetector(object):
     """ 花屏检测基类
     """
+
     def __init__(self, image_data):
         self.__blurred_frame_check_server_url = "http://10.221.42.190:8601/v1/models/blurred_screen_model:predict"
         self.image_data = image_data
@@ -516,6 +517,7 @@ class ORBSimilarity(object):
     """
     利用ORB算法计算两张图像的相似性
     """
+
     def __init__(self, src_image, target_image):
         self.__src_image = cv2.cvtColor(src_image, cv2.COLOR_RGB2GRAY)
         self.__target_image = cv2.cvtColor(target_image, cv2.COLOR_RGB2GRAY)
@@ -540,6 +542,72 @@ class ORBSimilarity(object):
         else:
             similary = l1 / l2
             return similary
+
+
+class HashSimilarity(object):
+    """
+    """
+
+    def __init__(self, src_image, target_image):
+        self.__src_image = Image.fromarray(src_image.astype('uint8'))
+        self.__target_image = Image.fromarray(target_image.astype('uint8'))
+
+    @staticmethod
+    def __phash(image, height=32, width=32):
+        """图片hash化
+        """
+        image = numpy.array(image.resize((width, height), Image.ANTIALIAS).convert('L'), 'f')
+        A = []
+        for i in range(0, 32):
+            for j in range(0, 32):
+                if i == 0:
+                    a = numpy.sqrt(1 / 32)
+                else:
+                    a = numpy.sqrt(2 / 32)
+                A.append(a * numpy.cos(numpy.pi * (2 * j + 1) * i / (2 * 32)))
+        dct = numpy.dot(numpy.dot(image, numpy.reshape(A, (32, 32))), numpy.transpose(image))
+        b = dct[0:8][0:8]
+        hash_list = []
+        average = numpy.mean(b)
+        for i in range(8):
+            for j in range(8):
+                if b[i, j] >= average:
+                    hash_list.append(1)
+                else:
+                    hash_list.append(0)
+        return hash_list
+
+    @staticmethod
+    def __dhash(image, height=8, width=9):
+        image = numpy.array(image.resize((width, height), Image.ANTIALIAS).convert('L'), 'f')
+        hash_list = []
+        # 每行前一个像素大于后一个像素为1，相反为0，生成哈希
+        for i in range(height):
+            for j in range(height):
+                if image[i, j] > image[i, j + 1]:
+                    hash_list.append(1)
+                else:
+                    hash_list.append(0)
+        return hash_list
+
+    @staticmethod
+    def __hamming_distance(hash1, hash2):
+        """
+        """
+        num = 0
+        for index in range(len(hash1)):
+            if hash1[index] != hash2[index]:
+                num += 1
+        return num
+
+    def get_hash_similarity(self):
+        """ p_hash 相似度
+        """
+        p_hash_dist = self.__hamming_distance(self.__dhash(self.__src_image),
+                                              self.__dhash(self.__target_image)
+                                              )
+        p_hash_similarity = (1 - p_hash_dist * 1.0 / 64)
+        return p_hash_similarity
 
 
 class ImageQualityIndexGenerator(object):
@@ -589,7 +657,8 @@ class ImageQualityIndexGenerator(object):
             # cv2.imwrite("{}.png".format(index), cropped_img)
             cropped_img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2GRAY)
             ocr_res = __img_ocr.ocr_for_single_line(cropped_img)
-            ocr_result_list.append({'text': ''.join(ocr_res), 'coordinate': numpy.mean(box_info['box'], axis=0).tolist()})
+            ocr_result_list.append(
+                {'text': ''.join(ocr_res), 'coordinate': numpy.mean(box_info['box'], axis=0).tolist()})
         del __img_std
         del __img_ocr
         return ocr_result_list
@@ -605,7 +674,7 @@ class ImageQualityIndexGenerator(object):
         """ 图像结构相似度相似度
         :return:
         """
-        image_similarity_handler = ORBSimilarity(self.image_data,self.target_image_file)
+        image_similarity_handler = ORBSimilarity(self.image_data, self.target_image_file)
         return image_similarity_handler.get_similarity()
 
     def get_image_clarity(self):
@@ -631,6 +700,11 @@ class ImageQualityIndexGenerator(object):
     def get_image_match_result(self):
         image_matcher_handler = ImageMatcher(template_image=self.image_data, target_image=self.target_image_file)
         return image_matcher_handler.get_template_image_coordinates()
+
+    def get_hash_similarity(self):
+        """ 基于p_hash的图像相似度
+        """
+        return HashSimilarity(self.image_data, self.target_image_file).get_hash_similarity()
 
 
 if __name__ == '__main__':

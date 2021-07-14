@@ -203,11 +203,18 @@ class ImageIndex(object):
         else:
             return True
 
-    def caculate_similarity(self):
+    def calculate_similarity_orb(self):
         """计算两幅图像的相似度
         :return:
         """
         predict_result = self.image_index_handler.get_image_ssim()
+        return predict_result
+
+    def calculate_similarity_hash(self):
+        """计算两幅图像的相似度
+        :return:
+        """
+        predict_result = self.image_index_handler.get_hash_similarity()
         return predict_result
 
     def watermark_frame_detection(self):

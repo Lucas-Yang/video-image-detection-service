@@ -77,7 +77,7 @@ class TestPort(object):
         response = requests.request("POST", url, headers=self.headers, files=files)
         assert response.text.find('抖音') != -1
 
-    def test_horizontal_frame_detect(self):
+    def test_horizontal_frame_detect_v1(self):
         url = "http://localhost:8090/image/quality/horizontal-frame-detect"
         filepath = self.module_path + '/image_data/horizontal_frame_detect_true.png'
         files = [('file', ('horizontal_frame_detect_true.png', open(filepath, 'rb'), 'image/png'))]
@@ -142,6 +142,15 @@ class TestPort(object):
 
     def test_get_image_ssim(self):
         url = "http://localhost:8090/image/quality/similarity"
+        file_src_path = self.module_path + '/image_data/similarity_src.png'
+        file_target_path = self.module_path + '/image_data/similarity_target.png'
+        files = [('file_src', ('similarity_src.png', open(file_src_path, 'rb'), 'image/png')),
+                 ('file_target', ('similarity_target.png', open(file_target_path, 'rb'), 'image/png'))]
+        response = requests.request("POST", url, headers=self.headers, files=files)
+        assert response.json()['code'] == 0
+
+    def test_get_image_ssim_v2(self):
+        url = "http://localhost:8090/image/quality/similarity-v2"
         file_src_path = self.module_path + '/image_data/similarity_src.png'
         file_target_path = self.module_path + '/image_data/similarity_target.png'
         files = [('file_src', ('similarity_src.png', open(file_src_path, 'rb'), 'image/png')),

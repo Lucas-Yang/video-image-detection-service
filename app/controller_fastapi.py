@@ -352,14 +352,40 @@ async def blurred_frame_detect(file: UploadFile = File(...)):
 
 
 @image_app.post('/quality/similarity')
-async def caculate_similarity(file_src: UploadFile = File(...),
-                              file_target: UploadFile = File(...)):
+async def calculate_similarity(file_src: UploadFile = File(...),
+                               file_target: UploadFile = File(...)):
     res_src = await file_src.read()
     res_tar = await file_target.read()
     if format_handler.api_image_white_detection_checker(file_src) and \
             format_handler.api_image_white_detection_checker(file_target):
         image_handler = ImageIndex(res_src, target_file=res_tar)
-        similarity_result = image_handler.caculate_similarity()
+        similarity_result = image_handler.calculate_similarity_orb()
+        if similarity_result == -1:
+            return {
+                "code": -2,
+                "message": "输入的图像没有关键点，无法计算相似性"
+            }
+        else:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"feature_sim_score": similarity_result}
+            }
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
+
+
+@image_app.post('/quality/similarity-v2')
+async def calculate_similarity_hash(file_src: UploadFile = File(...),
+                                    file_target: UploadFile = File(...)):
+    res_src = await file_src.read()
+    res_tar = await file_target.read()
+    if format_handler.api_image_white_detection_checker(file_src) and \
+            format_handler.api_image_white_detection_checker(file_target):
+        image_handler = ImageIndex(res_src, target_file=res_tar)
+        similarity_result = image_handler.calculate_similarity_hash()
         if similarity_result == -1:
             return {
                 "code": -2,

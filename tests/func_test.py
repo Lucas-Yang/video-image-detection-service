@@ -155,7 +155,7 @@ class TestFunc(object):
         res_src = open(file_src_path, 'rb').read()
         target_src = open(file_target_path, 'rb').read()
         a = ImageIndex(quality_file=res_src, target_file=target_src)
-        assert a.caculate_similarity() == 0.03
+        assert a.calculate_similarity_orb() == 0.03
 
     def test_get_silence_index(self):
         file_path = self.module_path + '/image_data/silence.mp3'

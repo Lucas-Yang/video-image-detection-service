@@ -81,10 +81,10 @@ class BlurredImageChecker(object):
         img = cv2.imread(file_name, cv2.IMREAD_GRAYSCALE)
         hight, width = img.shape
         print(hight, width)
-        cropped1 = img[0:hight//2, 0:width//2]
-        cropped2 = img[hight//2:hight, 0:width//2]
-        cropped3 = img[0:hight//2, width//2:width]
-        cropped4 = img[hight//2:hight, width//2:width]
+        cropped1 = img[0:hight // 2, 0:width // 2]
+        cropped2 = img[hight // 2:hight, 0:width // 2]
+        cropped3 = img[0:hight // 2, width // 2:width]
+        cropped4 = img[hight // 2:hight, width // 2:width]
         cv2.imwrite('cropped1.png', cropped1)
         cv2.imwrite('cropped2.png', cropped2)
         cv2.imwrite('cropped3.png', cropped3)
@@ -212,5 +212,76 @@ class BlurredImageChecker(object):
         print(response.json())
 
 
+class ImSim(object):
+    """
+    """
+
+    def __init__(self, src_img, target_img):
+        """
+        """
+        self.src_image = cv2.imread(src_img)
+        self.target_image = cv2.imread(target_img)
+
+    def orb(self):
+        """
+        """
+        __src_image = cv2.GaussianBlur(self.src_image, (5, 5), 0)
+        __target_image = cv2.GaussianBlur(self.target_image, (5, 5), 0)
+        finder = cv2.ORB_create()
+        kp1, des1 = finder.detectAndCompute(__src_image, None)
+        kp2, des2 = finder.detectAndCompute(__target_image, None)
+        bf = cv2.BFMatcher(normType=cv2.NORM_HAMMING)
+        matches = bf.knnMatch(des1, trainDescriptors=des2, k=2)
+
+        goodMatch = []
+        for m, n in matches:
+            # goodMatch是经过筛选的优质配对，如果2个配对中第一匹配的距离小于第二匹配的距离的7/10，
+            # 基本可以说明这个第一配对是两幅图像中独特的，不重复的特征点,可以保留。
+            if m.distance < 0.7 * n.distance:
+                goodMatch.append(m)
+        l1 = len(goodMatch)
+        l2 = len(matches)
+        if l2 == 0:
+            return -1
+        else:
+            similary = l1 / l2
+            return similary
+
+    def sift(self):
+        """
+        """
+
+        # 按照灰度图片读入
+        img1 = self.src_image
+        img2 = self.target_image
+        # 创建sift检测器
+        sift = cv2.SIFT_create()
+        # 查找监测点和匹配符
+        kp1, des1 = sift.detectAndCompute(img1, None)
+        kp2, des2 = sift.detectAndCompute(img2, None)
+        """
+        keypoint是检测到的特征点的列表
+        descriptor是检测到特征的局部图像的列表
+        """
+        # 获取flann匹配器
+        FLANN_INDEX_KDTREE = 0
+        indexParams = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+        searchParams = dict(checks=50)
+        flann = cv2.FlannBasedMatcher(indexParams, searchParams)
+        # 进行匹配
+        matches = flann.knnMatch(des1, des2, k=2)
+        # 准备空的掩膜 画好的匹配项
+        matchesMask = [[0, 0] for i in range(len(matches))]
+        matched_list = []
+        for i, (m, n) in enumerate(matches):
+            if m.distance < 0.7 * n.distance:
+                matchesMask[i] = [1, 0]
+                matched_list.append(i)
+        # 匹配结果图片
+        print("sift score: {}".format(len(matched_list) / len(matches)))
+
+
 if __name__ == '__main__':
-    BlurredImageChecker().cor()
+    im_handler = ImSim('1-src.png', '1-target.png')
+    print(im_handler.orb())
+    print(im_handler.sift())
