@@ -578,6 +578,19 @@ class HashSimilarity(object):
         return hash_list
 
     @staticmethod
+    def __dhash(image, height=8, width=9):
+        image = numpy.array(image.resize((width, height), Image.ANTIALIAS).convert('L'), 'f')
+        hash_list = []
+        # 每行前一个像素大于后一个像素为1，相反为0，生成哈希
+        for i in range(height):
+            for j in range(height):
+                if image[i, j] > image[i, j + 1]:
+                    hash_list.append(1)
+                else:
+                    hash_list.append(0)
+        return hash_list
+
+    @staticmethod
     def __hamming_distance(hash1, hash2):
         """
         """
@@ -590,8 +603,8 @@ class HashSimilarity(object):
     def get_hash_similarity(self):
         """ p_hash 相似度
         """
-        p_hash_dist = self.__hamming_distance(self.__phash(self.__src_image),
-                                              self.__phash(self.__target_image)
+        p_hash_dist = self.__hamming_distance(self.__dhash(self.__src_image),
+                                              self.__dhash(self.__target_image)
                                               )
         p_hash_similarity = (1 - p_hash_dist * 1.0 / 64)
         return p_hash_similarity
