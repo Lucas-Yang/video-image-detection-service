@@ -6,11 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [6.3.1] - 2021-07-14
+## [3.1.0] - 2021-07-14
 ### 补丁功能
 - 图像相似度功能 similarity-v2上线
 -
 -
+### 镜像地址
+- hub.bilibili.co/luoyadong/mock-fuzz-service:3.1
 
 ## [6.3.0] - 2021-07-14
 ### 新增功能
