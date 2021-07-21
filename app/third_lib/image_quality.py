@@ -673,10 +673,8 @@ class ImageQualityIndexGenerator(object):
         boxes = [line[0] for line in result]
         texts = [line[1][0] for line in result]
         ocr_box = []
-        for box in boxes:
-            temp_box = numpy.array(box)
-            ocr_box.append(numpy.mean(temp_box, axis=0).tolist())
         for i in range(len(texts)):
+            ocr_box.append(numpy.mean(numpy.array(boxes[i]), axis=0).tolist())
             ocr_result_list.append(
                 {'text': texts[i], 'coordinate': ocr_box[i]}
             )

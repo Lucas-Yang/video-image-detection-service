@@ -84,13 +84,6 @@ class TestPort(object):
         response = requests.request("POST", url, headers=self.headers, files=files)
         assert response.text.find('true') != -1
 
-    def test_frame_orc(self):
-        url = "http://localhost:8090/image/quality/char-recognize"
-        filepath = self.module_path + '/image_data/ocr.jpg'
-        files = [('file', ('ocr.jpg', open(filepath, 'rb'), 'image/png'))]
-        response = requests.request("POST", url, headers=self.headers, files=files)
-        assert response.json()['code'] == 0
-
     def test_frame_paddle_orc(self):
         url = "http://localhost:8090/image/quality/char-recognize"
         filepath = self.module_path + '/image_data/ocr.jpg'
@@ -236,7 +229,7 @@ class TestPort(object):
             cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
             result = requests.request("GET", cv_index_url, headers=self.headers)
             if result.json()["code"] != -4:
-                assert result.json()["data"]["start_app_time"] == 2.15625
+                assert result.json()["data"]["start_app_time"] == 2.0625
                 return
             if ctr > 120:
                 raise TimeoutError("Time out")
