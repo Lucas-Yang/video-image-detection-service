@@ -10,9 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 -
 ### 镜像地址
-- hub.bilibili.co/luoyadong/mock-fuzz-service:3.1
 
 ## [6.3.0] - 2021-07-14
 ### 新增功能
 - ocr v2.0上线(调整边框，修改opencv依赖，保证cnstd切出图像不翻转)
 - 图像相似度调整
+
+## [6.3.2] - 2021-07-21
+### 新增功能
+- ocr v3.0上线(基于paddleocr，性能，准确率都提升)
+
+### 镜像地址
+
+
