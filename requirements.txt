@@ -98,3 +98,5 @@ WTForms==2.3.1
 zipp==3.1.0
 zope.event==4.4
 zope.interface==5.1.0
+paddleocr==2.0.6
+paddlepaddle==2.0.1

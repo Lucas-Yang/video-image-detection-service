@@ -9,6 +9,7 @@ from PIL import Image
 from cnocr import CnOcr
 from cnstd import CnStd
 from skimage.measure import compare_ssim
+from paddleocr import PaddleOCR
 
 
 class BlurredFrameDetector(object):
@@ -661,6 +662,24 @@ class ImageQualityIndexGenerator(object):
                 {'text': ''.join(ocr_res), 'coordinate': numpy.mean(box_info['box'], axis=0).tolist()})
         del __img_std
         del __img_ocr
+        return ocr_result_list
+
+    def get_paddle_ocr_result_list(self):
+        """图像paddleocr
+        """
+        paddle_ocr = PaddleOCR(use_gpu=False, use_angle_cls=True, lang="ch")
+        result = paddle_ocr.ocr(self.image_data, cls=True)
+        ocr_result_list = []
+        boxes = [line[0] for line in result]
+        texts = [line[1][0] for line in result]
+        ocr_box = []
+        for box in boxes:
+            temp_box = numpy.array(box)
+            ocr_box.append(numpy.mean(temp_box, axis=0).tolist())
+        for i in range(len(texts)):
+            ocr_result_list.append(
+                {'text': texts[i], 'coordinate': ocr_box[i]}
+            )
         return ocr_result_list
 
     def get_if_blurred_frame(self):
