@@ -52,7 +52,7 @@ class TestFunc(object):
         a = ImageIndex(img_bytes)
         assert a.blurred_frame_detection() is True
 
-    def test_frame_ocr(self):
+    def test_frame_paddle_ocr(self):
         filename = self.module_path + '/image_data/ocr.jpg'
         img = cv2.imread(filename)
         img_bytes = cv2.imencode('.jpg', img)[1]

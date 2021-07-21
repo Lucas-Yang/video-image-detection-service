@@ -229,7 +229,7 @@ class ImageIndex(object):
         """ 图像ocr
         :return:
         """
-        ocr_result_list = self.image_index_handler.get_ocr_result_list()
+        ocr_result_list = self.image_index_handler.get_paddle_ocr_result_list()
         self.__logger.info("ocr:{}".format(ocr_result_list))
         return ocr_result_list
 
