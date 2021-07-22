@@ -9,3 +9,5 @@ sentry_sdk.init(
     traces_sample_rate=1.0
 )
 """
+from paddleocr import PaddleOCR
+paddle_ocr = PaddleOCR(use_gpu=False, use_angle_cls=True, lang="ch")
