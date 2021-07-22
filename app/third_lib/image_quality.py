@@ -621,6 +621,7 @@ class ImageQualityIndexGenerator(object):
         param: target_image_file: 多图像可选项
         """
         self.image_data = self.__bytesIO2img(image_file)
+        self.paddle_ocr = PaddleOCR(use_gpu=False, use_angle_cls=True, lang="ch")
         if target_image_file:
             self.target_image_file = self.__bytesIO2img(target_image_file)
         else:
@@ -667,8 +668,7 @@ class ImageQualityIndexGenerator(object):
     def get_paddle_ocr_result_list(self):
         """图像paddleocr
         """
-        paddle_ocr = PaddleOCR(use_gpu=False, use_angle_cls=True, lang="ch")
-        result = paddle_ocr.ocr(self.image_data, cls=True)
+        result = self.paddle_ocr.ocr(self.image_data, cls=True)
         ocr_result_list = []
         boxes = [line[0] for line in result]
         texts = [line[1][0] for line in result]
