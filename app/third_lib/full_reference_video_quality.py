@@ -133,6 +133,28 @@ class VideoVMAF(object):
         vmaf_score = lines[-1].split("score:")[-1].strip()  # vmaf的分数在命令行输出的最后一行
         return vmaf_score
 
+class VideoPSNR(object):
+
+    def __init__(self, input_video=None, refer_video=None):
+        self.input_video = input_video
+        self.refer_video = refer_video
+
+    def get_video_psnr_score(self) -> str:
+        """ 根据ffmpeg计算psnr
+        :return: 视频的psnr平均分
+        """
+        stream1 = ffmpeg.input(self.input_video)
+        stream2 = ffmpeg.input(self.refer_video)
+        stream = ffmpeg.filter_([stream1, stream2], 'psnr')
+        p = subprocess.Popen(stream.output('-', format='null').compile() + ['-nostats'],
+                             stderr=subprocess.PIPE)
+        output = p.communicate()[1].decode('utf-8')
+        if p.returncode != 0:
+            sys.stderr.write(output)
+            return None
+        lines = output.splitlines()
+        psnr_score = lines[-1].split(' ')[7].split(':')[1]
+        return psnr_score
 
 if __name__ == "__main__":
     ssim_handler = VideoSSIM("/Users/luoyadong/Desktop/studio_video_1605840496434.mp4",
