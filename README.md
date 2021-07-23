@@ -29,8 +29,9 @@
 |      | 色差检测(初版上线)|
 |      | 相似度检测(初版上线)|
 | 视频质量指标|全参考视频质量指标： SSIM|
-|      |全参考视频质量指标： Vmaf(暂没上线)|
-|      |全参考视频质量指标： PSNR(暂没上线)|
+|      |全参考视频质量指标： Vmaf|
+|      |全参考视频质量指标： PSNR|
+|      |无参考视频质量指标：NIQE|
 | 图像指标|蓝屏，黑屏，绿屏检测|
 |       |bilibili错误检测(暂未上线)|
 |       |花屏检测(轻视频版本上线，其他需求待适配开发)|
@@ -635,6 +636,72 @@ print(response.text.encode('utf8'))
   }
 }
 ```
+### 14 视频质量评估PSNR
+
+- 接口描述：该接口用来获取输入视频与参考视频的质量评估，是一种全参考的客观评价方法，PSNR分数越高表示压缩后失真越小。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/player/video/psnr"
+
+files = [
+    ('file_input', open(video_file_path, 'rb')),
+    ('file_refer', open(video_refer_path, 'rb'))
+]
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "psnr_score": "27.684495"
+  }
+}
+```
+### 15 视频质量评估NIQE
+
+- 接口描述：该接口用来获取输入视频的质量，是一种无参考的客观评价方法，NIQE分数越高表示视频质量越差。NIQE是用来衡量一副图像质量的，本项目中是对视频的每一帧都进行打分然后取平均值作为视频的最终得分。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://127.0.0.1:8090/player/video/niqe"
+
+files = [
+    ('file_input', open(video_file_path, 'rb'))
+]
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "niqe_score": "26.2006"
+  }
+}
+```
+
 
 ## 三 安装服务
 
