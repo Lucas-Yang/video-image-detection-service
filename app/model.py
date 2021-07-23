@@ -5,6 +5,7 @@ from app.factory import LogManager, MyMongoClient
 from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDetector, VideoColourCastDetector
 from app.third_lib.dot_predict import DotVideoIndex
 from app.third_lib.full_reference_video_quality import VideoSSIM, VideoVMAF, VideoPSNR
+from app.third_lib.no_reference_video_quality import VideoNIQE
 from app.third_lib.image_quality import ImageQualityIndexGenerator
 
 
@@ -159,6 +160,14 @@ class PlayerIndex(object):
         video_quality_handler = VideoPSNR(input_video, refer_video)
         psnr_score = video_quality_handler.get_video_psnr_score()
         return {"psnr_score": psnr_score}
+
+    def get_video_quality_niqe(self):
+        """获取视频niqe客观质量评分
+        """
+        input_video = self.video_quality_dict.get("input_video")
+        video_quality_handler = VideoNIQE(input_video)
+        niqe_score = video_quality_handler.get_video_niqe_score()
+        return {"niqe_score": niqe_score}
 
     def get_silence_index(self):
         """获取音视频静音时间戳

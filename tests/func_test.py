@@ -141,6 +141,11 @@ class TestFunc(object):
         a = PlayerIndex(video_quality_dict={"input_video": input_video_path, "refer_video": refer_video_path})
         assert a.get_video_quality_psnr()['psnr_score'] is not None
 
+    def test_get_video_quality_niqe(self):
+        input_video_path = os.path.join(self.module_path, "video_data/vmaf_refer_video.mp4")
+        a = PlayerIndex(video_quality_dict={"input_video": input_video_path})
+        assert a.get_video_quality_niqe()['niqe_score'] is not None
+
     def test_get_video_ssim(self):
         file_src_path = self.module_path + '/video_data/get_colour_cast_false.mp4'
         file_target_path = self.module_path + '/video_data/get_colour_cast_false.mp4'

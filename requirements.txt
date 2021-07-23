@@ -100,3 +100,4 @@ zope.event==4.4
 zope.interface==5.1.0
 paddleocr==2.0.6
 paddlepaddle==2.0.1
+sk-video==1.1.10
