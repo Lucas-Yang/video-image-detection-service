@@ -10,4 +10,10 @@ sentry_sdk.init(
 )
 """
 from paddleocr import PaddleOCR
-paddle_ocr = PaddleOCR(use_gpu=False, use_angle_cls=True, lang="ch")
+import os
+base_path = os.getcwd()
+cls_path = base_path + '/model/.paddleocr/2.1/cls'
+det_path = base_path + '/model/.paddleocr/2.1/det'
+rec_path = base_path + '/model/.paddleocr/2.1/rec'
+paddle_ocr = PaddleOCR(det_model_dir=det_path, rec_model_dir=rec_path, cls_model_dir=cls_path,
+                       use_gpu=False, use_angle_cls=True, lang="ch")
