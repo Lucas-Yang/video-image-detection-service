@@ -28,4 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 镜像地址
 
+## [6.4.1] - 2021-07-22
+### 新增功能
+- 镜像包瘦身
+- paddler-ocr
+
+### 镜像地址
+
 
