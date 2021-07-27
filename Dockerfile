@@ -14,7 +14,6 @@ RUN pip3 install -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 RUN pip3 install --upgrade https://github.com/celery/celery/tarball/master
 
 RUN apt-get install git -y
-RUN git clone https://github.com/FFmpeg/FFmpeg.git
 RUN git clone https://github.com/Netflix/vmaf.git
 
 RUN apt-get install nasm
@@ -25,11 +24,6 @@ RUN meson build --buildtype release
 RUN ninja -vC build
 RUN ninja -vC build install
 
-WORKDIR ../../FFmpeg
-RUN ./configure --enable-libvmaf
-RUN make
-RUN make install
-
 RUN useradd -u 8877 work --create-home --no-log-init --shell /bin/bash
 
 WORKDIR /home/work/my_app
@@ -38,6 +32,7 @@ RUN chown -R work:work /home/work/my_app
 
 USER work
 COPY --chown=work:work . .
+RUN ./ffmpeg_configure --enable-libvmaf
 COPY --chown=work:work model /home/work
 COPY --chown=work:work model /home/work
 

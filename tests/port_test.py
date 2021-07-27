@@ -249,7 +249,7 @@ class TestPort(object):
             cv_index_url = "http://localhost:8090/player/index/cv?task_id=" + response.json()['task_id']
             result = requests.request("GET", cv_index_url, headers=self.headers)
             if result.json()["code"] != -4:
-                assert result.json()["data"]["start_app_time"] == 2.0625
+                assert result.json()["data"]["start_app_time"] > 0
                 return
             if ctr > 120:
                 raise TimeoutError("Time out")
