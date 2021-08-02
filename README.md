@@ -563,7 +563,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://127.0.0.1:8090/player/video/ssim"
+url = "http://hassan.bilibili.co/image/quality/similarity-v2"
 
 files = {"file_src": open(filepath_src, "rb"), "file_target": open(filepath_target, "rb")}
 
