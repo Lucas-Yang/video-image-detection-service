@@ -32,7 +32,7 @@ class TestPort(object):
 
     def test_get_silence_index(self):
         url = "http://127.0.0.1:8090/player/index/silence"
-        filepath = self.module_path + '/image_data/silence.mp3'
+        filepath = self.module_path + '/video_data/silence.mp4'
         files = {'file_src': open(filepath, "rb")}
         response = requests.post(url=url, files=files, headers=self.headers, )
         assert response.status_code == 200
@@ -180,7 +180,7 @@ class TestPort(object):
 
     def test_get_video_black(self):
         upload_url = "http://localhost:8090/player/video/upload"
-        file_path = self.module_path +"/video_data/black.mp4"
+        file_path = self.module_path + "/video_data/black.mp4"
         files = [('file', ('black.mp4', open(file_path, 'rb'), 'video/mp4'))]
         payload = {'index_types': 'BLACKFRAME',
                    'black_threshold': '0.9'}
@@ -235,7 +235,7 @@ class TestPort(object):
             if ctr > 120:
                 raise TimeoutError("Time out")
             time.sleep(10)
-    
+
     def test_get_video_startappxigua(self):
         upload_url = "http://localhost:8090/player/video/upload"
         file_path = self.module_path + "/video_data/startxigua.mp4"
@@ -254,7 +254,7 @@ class TestPort(object):
             if ctr > 120:
                 raise TimeoutError("Time out")
             time.sleep(10)
-    
+
     def test_get_video_startapptencent(self):
         upload_url = "http://localhost:8090/player/video/upload"
         file_path = self.module_path + "/video_data/starttencent.mp4"
@@ -273,7 +273,7 @@ class TestPort(object):
             if ctr > 120:
                 raise TimeoutError("Time out")
             time.sleep(10)
-    
+
     def test_get_video_startappiqiyi(self):
         upload_url = "http://localhost:8090/player/video/upload"
         file_path = self.module_path + "/video_data/startiqiyi.mp4"
@@ -292,7 +292,7 @@ class TestPort(object):
             if ctr > 120:
                 raise TimeoutError("Time out")
             time.sleep(10)
-    
+
     def test_get_video_startappdouyin(self):
         upload_url = "http://localhost:8090/player/video/upload"
         file_path = self.module_path + "/video_data/startdouyin.mp4"
@@ -311,7 +311,7 @@ class TestPort(object):
             if ctr > 120:
                 raise TimeoutError("Time out")
             time.sleep(10)
-    
+
     def test_get_video_freezeframe(self):
         upload_url = "http://localhost:8090/player/video/upload"
         file_path = self.module_path + "/video_data/freezeframe.mp4"
@@ -330,7 +330,7 @@ class TestPort(object):
             if ctr > 120:
                 raise TimeoutError("Time out")
             time.sleep(10)
-    
+
     def test_get_video_firstframe(self):
         upload_url = "http://localhost:8090/player/video/upload"
         file_path = self.module_path + "/video_data/firstframe.mp4"

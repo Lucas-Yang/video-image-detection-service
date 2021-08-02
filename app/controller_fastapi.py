@@ -328,11 +328,14 @@ async def get_silence_index(file_src: UploadFile = File(...)):
             model_handler = PlayerIndex(silence_info_dict={"video_path": file_path})
             silence_result_index = model_handler.get_silence_index()
             os.remove(file_path)
-            return {
-                "code": 0,
-                "message": "Success",
-                "data": silence_result_index
-            }
+            if silence_result_index['silence_timestamps'] is not None:
+                return {
+                    "code": 0,
+                    "message": "Success",
+                    "data": silence_result_index
+                }
+            else:
+                raise Exception("视频解析出错！(可能是没有音频文件)")
         except Exception as err:
             return {
                 "code": -2,
