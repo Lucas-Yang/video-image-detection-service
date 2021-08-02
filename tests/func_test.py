@@ -14,7 +14,7 @@ class TestFunc(object):
     """ 函数接口测试类
     """
     module_path = os.path.dirname(__file__)
-    
+
     # 函数必须以test_打头
     def test_black_white_frame_detection_true(self):
         filename = self.module_path + '/image_data/white.jpg'
@@ -169,40 +169,40 @@ class TestFunc(object):
         assert a.calculate_similarity_orb() == 0.03
 
     def test_get_silence_index(self):
-        file_path = self.module_path + '/image_data/silence.mp3'
+        file_path = self.module_path + '/video_data/silence.mp4'
         a = PlayerIndex(silence_info_dict={"video_path": file_path})
-        assert a.get_silence_index()["silence_timestamps"][0]["silence_duration"] == 74.0484
-    
+        assert a.get_silence_index()["silence_timestamps"][0]["silence_duration"] == 87.98
+
     def test_get_video_freezeframe(self):
         file_path = self.module_path + '/video_data/freezeframe.mp4'
         a = PlayerIndex(cv_info_dict={"temp_video_path": file_path, 'index_types': ['FREEZEFRAME']})
         assert a.get_cv_index()['freeze_frame_list'][0]['freeze_start_time'] == '3.84'
-        
+
     def test_get_video_firstfrmae(self):
         file_path = self.module_path + '/video_data/firstframe.mp4'
         a = PlayerIndex(cv_info_dict={"temp_video_path": file_path, 'index_types': ['FIRSTFRAME']})
         assert a.get_cv_index()["first_frame_time"] == -1
-    
+
     def test_get_video_startapp(self):
         file_path = self.module_path + '/video_data/startapp.mp4'
         a = PlayerIndex(cv_info_dict={"temp_video_path": file_path, 'index_types': ['STARTAPP']})
         assert a.get_cv_index()["start_app_time"] == 1.3000000000000007
-    
+
     def test_get_video_startappyouku(self):
         file_path = self.module_path + '/video_data/startyouku.mp4'
         a = PlayerIndex(cv_info_dict={"temp_video_path": file_path, 'index_types': ['STARTAPPYOUKU']})
         assert a.get_cv_index()["start_app_time"] == 5.9
-    
+
     def test_get_video_startappxigua(self):
         file_path = self.module_path + '/video_data/startxigua.mp4'
         a = PlayerIndex(cv_info_dict={"temp_video_path": file_path, 'index_types': ['STARTAPPIXIGUA']})
         assert a.get_cv_index()["start_app_time"] == 2.0999999999999996
-    
+
     def test_get_video_startapptencent(self):
         file_path = self.module_path + '/video_data/starttencent.mp4'
         a = PlayerIndex(cv_info_dict={"temp_video_path": file_path, 'index_types': ['STARTAPPTENCENT']})
         assert a.get_cv_index()["start_app_time"] == 6.100000000000001
-    
+
     def test_get_video_startappiqiyi(self):
         file_path = self.module_path + '/video_data/startiqiyi.mp4'
         a = PlayerIndex(cv_info_dict={"temp_video_path": file_path, 'index_types': ['STARTAPPIQIYI']})

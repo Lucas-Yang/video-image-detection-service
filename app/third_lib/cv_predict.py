@@ -557,7 +557,7 @@ class VideoSilenceDetector(object):
         output = p.communicate()[1].decode('utf-8')
         if p.returncode != 0:
             sys.stderr.write(output)
-            sys.exit(1)
+            return None
         lines = output.splitlines()
 
         silence_start = []
