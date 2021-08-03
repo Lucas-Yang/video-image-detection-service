@@ -244,9 +244,9 @@ Object{...},
 ```python
 import requests
 
-url = "http://127.0.0.1:8090/player/index/silence"
+url = "http://hassan.bilibili.co/player/index/silence"
 
-files = {"file": open(filepath, "rb")}
+files = {"file_src": open(filepath, "rb")}
 
 response = requests.request("POST", url, files=files)
 
@@ -282,7 +282,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://127.0.0.1:8090/player/video/vmaf"
+url = "http://hassan.bilibili.co/player/video/vmaf"
 
 files = [
     ('file_input', open(video_file_path, 'rb')),
@@ -318,7 +318,7 @@ import requests
 
 url = "http://127.0.0.1:8090/image/quality/clarity-detect"
 
-files = {"file": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -347,9 +347,9 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://127.0.0.1:8090/image/quality/green-frame-detect"
+url = "http://hassan.bilibili.co/image/quality/green-frame-detect"
 
-files = {"file": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -386,13 +386,13 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://localhost:8090/image/quality/watermark-detect"
+url = "http://hassan.bilibili.co/image/quality/watermark-detect"
 
-files = {"file": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
-print(response.text.encode('utf8'))
+print(response.json())
 
 ```
 
@@ -430,9 +430,9 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://localhost:8090/image/quality/colorlayer-detect"
+url = "http://hassan.bilibili.co/image/quality/colorlayer-detect"
 
-files = {"file": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -466,9 +466,9 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://localhost:8090/image/quality/black_white-detect"
+url = "http://hassan.bilibili.co/image/quality/black_white-detect"
 
-files = {"file": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -500,9 +500,9 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://localhost:8090/player/video/colorcast-detect"
+url = "http://hassan.bilibili.co/player/video/colorcast-detect"
 
-files = {"file_src": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -532,9 +532,9 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://127.0.0.1:8090/image/quality/blurred-detect"
+url = "http://hassan.bilibili.co/image/quality/blurred-detect"
 
-files = {"file": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -565,7 +565,7 @@ import requests
 
 url = "http://hassan.bilibili.co/image/quality/similarity-v2"
 
-files = {"file_src": open(filepath_src, "rb"), "file_target": open(filepath_target, "rb")}
+files = {"file_src":('file_src.png',open(filepath_src, "rb"),'image/png'), "file_target":('file_target.png',open(filepath_tar, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -594,9 +594,9 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://localhost:8090/image/quality/image-match"
+url = "http://hassan.bilibili.co/image/quality/image-match"
 
-files = {"file_src": open(filepath_src, "rb"), "file_target": open(filepath_target, "rb")}
+files = {"file_src":('file_src.png',open(filepath_src, "rb"),'image/png'), "file_target":('file_target.png',open(filepath_tar, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
@@ -613,13 +613,13 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://localhost:8090/image/quality/image-match"
+url = "http://hassan.bilibili.co/image/quality/char-recognize"
 
-files = {"file": open(filepath, "rb")}
+files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
 response = requests.request("POST", url, files=files)
 
-print(response.text.encode('utf8'))
+print(response.json())
 
 ```
 
@@ -645,7 +645,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://127.0.0.1:8090/player/video/psnr"
+url = "http://hassan.bilibili.co/player/video/psnr"
 
 files = [
     ('file_input', open(video_file_path, 'rb')),
@@ -678,7 +678,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://127.0.0.1:8090/player/video/niqe"
+url = "http://hassan.bilibili.co/player/video/niqe"
 
 files = [
     ('file_input', open(video_file_path, 'rb'))
