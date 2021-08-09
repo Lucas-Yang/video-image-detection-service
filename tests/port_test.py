@@ -140,6 +140,15 @@ class TestPort(object):
         response = requests.post(url=url, files=files, headers=self.headers, )
         assert response.json()['code'] == 0
 
+    def test_get_brisque_score(self):
+        url = "http://127.0.0.1:8090/player/video/brisque"
+        input_video_path = os.path.join(self.module_path, "video_data/vmaf_input_video.mp4")
+        files = [
+            ('file', ('vmaf_input_video.mp4', open(input_video_path, 'rb'), 'video/mp4'))
+        ]
+        response = requests.post(url=url, files=files, headers=self.headers, )
+        assert response.json()['code'] == 0
+
     def test_get_video_ssim(self):
         url = "http://127.0.0.1:8090/player/video/ssim"
         file_src_path = self.module_path + '/video_data/get_colour_cast_false.mp4'
