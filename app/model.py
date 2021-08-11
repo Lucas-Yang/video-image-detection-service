@@ -6,6 +6,7 @@ from app.third_lib.cv_predict import DeepVideoIndex, ModelType, VideoSilenceDete
 from app.third_lib.dot_predict import DotVideoIndex
 from app.third_lib.full_reference_video_quality import VideoSSIM, VideoVMAF, VideoPSNR
 from app.third_lib.no_reference_video_quality import VideoNIQE, VideoBRISQUE
+from app.third_lib.no_reference_image_quality import ImageNIQE,ImageBRISQUE
 from app.third_lib.image_quality import ImageQualityIndexGenerator
 
 
@@ -165,16 +166,16 @@ class PlayerIndex(object):
         """获取视频niqe客观质量评分
         """
         input_video = self.video_quality_dict.get("input_video")
-        video_quality_handler = VideoNIQE(input_video)
-        niqe_score = video_quality_handler.get_video_niqe_score()
+        video_quality_handler = VideoNIQE()
+        niqe_score = video_quality_handler.get_video_niqe_score(input_video)
         return {"niqe_score": niqe_score}
 
     def get_video_quality_brisque(self):
         """获取视频brisque评分
         """
         input_video = self.video_quality_dict.get("input_video")
-        video_quality_handler = VideoBRISQUE(input_video)
-        brisque_score = video_quality_handler.get_brisque_score()
+        video_quality_handler = VideoBRISQUE()
+        brisque_score = video_quality_handler.get_video_brisque_score(input_video)
         return {"brisque_score": brisque_score}
 
     def get_silence_index(self):
@@ -305,6 +306,18 @@ class ImageIndex(object):
         match_res = self.image_index_handler.get_image_match_result()
         self.__logger.info("image_matching_res: {}".format(match_res))
         return match_res
+
+    def get_image_niqe_score(self):
+        """计算图像的NIQE分数
+        """
+        image_niqe_score = self.image_index_handler.get_image_niqe_score()
+        return image_niqe_score
+
+    def get_image_brisque_score(self):
+        """计算图像的BRISQUE分数
+        """
+        image_brisque_score = self.image_index_handler.get_image_brisque_score()
+        return image_brisque_score
 
 
 if __name__ == '__main__':

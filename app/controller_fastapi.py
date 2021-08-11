@@ -209,7 +209,7 @@ async def get_psnr_score(file_input: UploadFile = File(...),
         return {"code": -1, "message": str(err)}
 
 @player_app.post('/video/niqe')
-async def get_niqe_score(file_input: UploadFile = File(...)):
+async def get_video_niqe_score(file_input: UploadFile = File(...)):
     try:
         res_input = await file_input.read()  # 输入视频
 
@@ -234,7 +234,7 @@ async def get_niqe_score(file_input: UploadFile = File(...)):
         return {"code": -1, "message": str(err)}
 
 @player_app.post('/video/brisque')
-async def get_brisque_score(file: UploadFile = File(...)):
+async def get_video_brisque_score(file: UploadFile = File(...)):
     try:
         res_input = await file.read()  # 输入视频
 
@@ -633,6 +633,46 @@ async def get_image_match_res(file_src: UploadFile = File(...), file_target: Upl
             "code": -1,
             "message": "input error"
         }
+
+
+@image_app.post('/quality/niqe')
+async def get_image_niqe(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_checker(file.filename):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.get_image_niqe_score()
+        if result is not None:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"image_niqe_score": result}
+            }
+        else:
+            raise Exception("视频评估出错!（可能是图像尺寸太小）")
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
+
+
+@image_app.post('/quality/brisque')
+async def get_image_brisque(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_checker(file.filename):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.get_image_brisque_score()
+        if result is not None:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"image_brisque_score": result}
+            }
+        else:
+            raise Exception("视频评估出错!（可能是图像尺寸太小）")
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
 
 
 @image_app.get('/ping')
