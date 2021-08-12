@@ -648,7 +648,7 @@ async def get_image_niqe(file: UploadFile = File(...)):
                 "data": {"image_niqe_score": result}
             }
         else:
-            raise Exception("视频评估出错!（可能是图像尺寸太小）")
+            raise Exception("图像评估出错!（可能是图像尺寸太小）")
     else:
         return {
             "code": -1,
@@ -668,7 +668,7 @@ async def get_image_brisque(file: UploadFile = File(...)):
                 "data": {"image_brisque_score": result}
             }
         else:
-            raise Exception("视频评估出错!（可能是图像尺寸太小）")
+            raise Exception("图像评估出错!（可能是图像尺寸太小）")
     else:
         return {
             "code": -1,

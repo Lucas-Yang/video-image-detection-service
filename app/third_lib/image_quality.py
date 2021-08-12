@@ -396,9 +396,9 @@ class ImageColorLayer(object):
         self.img = img
         self.m, self.n, self.c = self.img.shape
         self.hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
-        self.red_lower1 = numpy.array([0, 40, 43])
+        self.red_lower1 = numpy.array([0, 40, 46])
         self.red_upper1 = numpy.array([10, 255, 255])
-        self.red_lower2 = numpy.array([153, 40, 43])
+        self.red_lower2 = numpy.array([153, 40, 46])
         self.red_upper2 = numpy.array([180, 255, 255])
         self.green_lower = numpy.array([35, 40, 43])
         self.green_upper = numpy.array([99, 255, 255])
@@ -409,7 +409,7 @@ class ImageColorLayer(object):
         self.color_dict = {'blue': '', 'green': '', 'red': '', 'exist_deep_red': False}
 
     def get_colorlayer_info(self):
-        self.__get_red_ratio()
+        #self.__get_red_ratio()
         self.__get_colors_ratio()
         return self.color_dict
 
@@ -424,7 +424,7 @@ class ImageColorLayer(object):
         deep_red_area = numpy.sum(xy == 1)
         deep_red_ratio = deep_red_area / (self.m * self.n)
         deep_red_flag = False
-        if deep_red_ratio < 0.40:  # 深红占比少于40%认为不存在
+        if deep_red_ratio < 0.003:  # 深红占比少于3%认为不存在
             pass
         else:
             deep_red_flag = True
@@ -434,7 +434,7 @@ class ImageColorLayer(object):
         """计算红绿蓝图层的比例
         """
         for color_index in self.color_list:
-            if color_index == 0:  # 浅红色
+            if color_index == 0:  # 红色
                 mask1 = cv2.inRange(self.hsv, self.red_lower1, self.red_upper1)
                 mask2 = cv2.inRange(self.hsv, self.red_lower2, self.red_upper2)
                 mask = cv2.bitwise_or(mask1, mask2)
@@ -445,6 +445,8 @@ class ImageColorLayer(object):
                 red_area = numpy.sum(self.color_map == 1)
                 red_ratio = '{:.2%}'.format(red_area / (self.m * self.n))
                 self.color_dict['red'] = red_ratio
+                if red_area / (self.m * self.n) > 0.4:
+                    self.color_dict['exist_deep_red'] = True
             elif color_index == 1:  # 绿色
                 mask = cv2.inRange(self.hsv, self.green_lower, self.green_upper)
                 cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
