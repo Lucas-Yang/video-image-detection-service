@@ -42,4 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 镜像地址
 
+## [6.5] - 2021-08-12
+### 功能描述
+- 无参考主观评估 brisque 上线
+
+### 发布commit_id
+- af29d9ea02d2228febd4b44f555a4eb3abc43c6a
+
 
