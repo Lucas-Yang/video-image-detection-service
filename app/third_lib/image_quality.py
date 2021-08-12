@@ -12,6 +12,8 @@ from cnocr import CnOcr
 from cnstd import CnStd
 from skimage.measure import compare_ssim
 from paddleocr import PaddleOCR
+from app.third_lib.no_reference_image_quality import ImageNIQE,ImageBRISQUE
+from model import model_path
 
 
 class BlurredFrameDetector(object):
@@ -422,7 +424,7 @@ class ImageColorLayer(object):
         deep_red_area = numpy.sum(xy == 1)
         deep_red_ratio = deep_red_area / (self.m * self.n)
         deep_red_flag = False
-        if deep_red_ratio < 0.003:  # 深红占比少于0.3%认为不存在
+        if deep_red_ratio < 0.40:  # 深红占比少于40%认为不存在
             pass
         else:
             deep_red_flag = True
@@ -669,10 +671,9 @@ class ImageQualityIndexGenerator(object):
     def get_paddle_ocr_result_list(self):
         """图像paddleocr
         """
-        base_path = os.getcwd()
-        cls_path = base_path + '/model/.paddleocr/2.1/cls'
-        det_path = base_path + '/model/.paddleocr/2.1/det'
-        rec_path = base_path + '/model/.paddleocr/2.1/rec'
+        cls_path = model_path() + '/.paddleocr/2.1/cls'
+        det_path = model_path() + '/.paddleocr/2.1/det'
+        rec_path = model_path() + '/.paddleocr/2.1/rec'
         paddle_ocr = PaddleOCR(det_model_dir=det_path, rec_model_dir=rec_path, cls_model_dir=cls_path,
                                use_gpu=False, use_angle_cls=True, lang="ch")
         result = paddle_ocr.ocr(self.image_data, cls=True)
@@ -730,6 +731,14 @@ class ImageQualityIndexGenerator(object):
         """ 基于p_hash的图像相似度
         """
         return HashSimilarity(self.image_data, self.target_image_file).get_hash_similarity()
+
+    def get_image_niqe_score(self):
+        image_quality_handler = ImageNIQE()
+        return image_quality_handler.get_image_niqe_score(self.image_data)
+
+    def get_image_brisque_score(self):
+        image_quality_handler = ImageBRISQUE()
+        return image_quality_handler.get_image_brisque_score(self.image_data)
 
 
 if __name__ == '__main__':

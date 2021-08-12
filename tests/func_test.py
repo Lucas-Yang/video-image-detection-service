@@ -129,6 +129,20 @@ class TestFunc(object):
         a = ImageIndex(img_bytes)
         assert a.green_frame_detect() is not None
 
+    def test_get_image_quality_niqe(self):
+        filename = self.module_path + '/image_data/douyin1.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.png', img)[1]
+        a = ImageIndex(img_bytes)
+        assert a.get_image_niqe_score() is not None
+
+    def test_get_image_quality_brisque(self):
+        filename = self.module_path + '/image_data/douyin1.png'
+        img = cv2.imread(filename)
+        img_bytes = cv2.imencode('.png', img)[1]
+        a = ImageIndex(img_bytes)
+        assert a.get_image_brisque_score() is not None
+
     def test_get_video_quality_vmaf(self):
         input_video_path = os.path.join(self.module_path, "video_data/vmaf_refer_video.mp4")
         refer_video_path = os.path.join(self.module_path, "video_data/vmaf_input_video.mp4")
@@ -145,6 +159,11 @@ class TestFunc(object):
         input_video_path = os.path.join(self.module_path, "video_data/vmaf_refer_video.mp4")
         a = PlayerIndex(video_quality_dict={"input_video": input_video_path})
         assert a.get_video_quality_niqe()['niqe_score'] is not None
+
+    def test_get_video_quality_brisque(self):
+        input_video_path = os.path.join(self.module_path, "video_data/vmaf_refer_video.mp4")
+        a = PlayerIndex(video_quality_dict={"input_video": input_video_path})
+        assert a.get_video_quality_brisque()['brisque_score'] is not None
 
     def test_get_video_ssim(self):
         file_src_path = self.module_path + '/video_data/get_colour_cast_false.mp4'

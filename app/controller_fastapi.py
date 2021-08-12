@@ -209,7 +209,7 @@ async def get_psnr_score(file_input: UploadFile = File(...),
         return {"code": -1, "message": str(err)}
 
 @player_app.post('/video/niqe')
-async def get_niqe_score(file_input: UploadFile = File(...)):
+async def get_video_niqe_score(file_input: UploadFile = File(...)):
     try:
         res_input = await file_input.read()  # 输入视频
 
@@ -230,6 +230,31 @@ async def get_niqe_score(file_input: UploadFile = File(...)):
             }
         else:
             raise Exception("视频评估出错!（可能是图像尺寸太小）")
+    except Exception as err:
+        return {"code": -1, "message": str(err)}
+
+@player_app.post('/video/brisque')
+async def get_video_brisque_score(file: UploadFile = File(...)):
+    try:
+        res_input = await file.read()  # 输入视频
+
+        base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp_dir')
+        if not os.path.exists(base_path):
+            os.mkdir(base_path)
+        file_input_path = os.path.join(base_path, str(time.time()) + file.filename)
+        with open(file_input_path, "wb") as f:
+            f.write(res_input)
+        model_handler = PlayerIndex(video_quality_dict={"input_video": file_input_path})
+        video_quality_result_score = model_handler.get_video_quality_brisque()
+        os.remove(file_input_path)  # 删除临时视频文件
+        if video_quality_result_score['brisque_score'] is not None:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": video_quality_result_score
+            }
+        else:
+            raise Exception("视频评估出错!（可能是视频不存在）")
     except Exception as err:
         return {"code": -1, "message": str(err)}
 
@@ -608,6 +633,46 @@ async def get_image_match_res(file_src: UploadFile = File(...), file_target: Upl
             "code": -1,
             "message": "input error"
         }
+
+
+@image_app.post('/quality/niqe')
+async def get_image_niqe(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_checker(file.filename):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.get_image_niqe_score()
+        if result is not None:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"image_niqe_score": result}
+            }
+        else:
+            raise Exception("视频评估出错!（可能是图像尺寸太小）")
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
+
+
+@image_app.post('/quality/brisque')
+async def get_image_brisque(file: UploadFile = File(...)):
+    res_src = await file.read()
+    if format_handler.api_image_checker(file.filename):
+        image_handler = ImageIndex(res_src)
+        result = image_handler.get_image_brisque_score()
+        if result is not None:
+            return {
+                "code": 0,
+                "message": "Success",
+                "data": {"image_brisque_score": result}
+            }
+        else:
+            raise Exception("视频评估出错!（可能是图像尺寸太小）")
+    else:
+        return {
+            "code": -1,
+            "message": "input error"}
 
 
 @image_app.get('/ping')

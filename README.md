@@ -32,6 +32,7 @@
 |      |全参考视频质量指标： Vmaf|
 |      |全参考视频质量指标： PSNR|
 |      |无参考视频质量指标：NIQE|
+|      |无参考视频质量指标：BRISQUE|
 | 图像指标|蓝屏，黑屏，绿屏检测|
 |       |bilibili错误检测(暂未上线)|
 |       |花屏检测(轻视频版本上线，其他需求待适配开发)|
@@ -671,7 +672,7 @@ print(response.text.encode('utf8'))
 ```
 ### 15 视频质量评估NIQE
 
-- 接口描述：该接口用来获取输入视频的质量，是一种无参考的客观评价方法，NIQE分数越高表示视频质量越差。NIQE是用来衡量一副图像质量的，本项目中是对视频的每一帧都进行打分然后取平均值作为视频的最终得分。
+- 接口描述：该接口用来获取输入视频的质量，是一种无参考的客观评价方法，NIQE分数越高表示视频质量越差。NIQE算法本身是用来衡量图像质量与自然图像之间数据分布的差异的，因此差异越高（即分数越高）表示图像越不自然、受损越严重。本项目中是对视频的每一帧都进行打分然后取平均值作为视频的最终得分。
 
 - example 指标参数：
 
@@ -702,6 +703,38 @@ print(response.text.encode('utf8'))
 }
 ```
 
+### 16 视频质量评估BRISQUE
+
+- 接口描述：该接口用来获取输入视频的质量，是一种无参考的客观评价方法，BRISQUE分数越高表示视频质量越好。BRISQUE原本是用来衡量图像质量的，训练模型时使用的数据就是主观评分，因此比较接近人的主观感受。本项目中是对视频的每一帧都进行打分然后取平均值作为视频的最终得分。0～20分表示视频质量无法接受；20～40分表示较差；40～60分表示可以接受；60～80表示较好；80～100表示非常好。
+
+- example 指标参数：
+
+```python
+import requests
+
+url = "http://hassan.bilibili.co/player/video/brisque"
+
+files = [
+    ('file_input', open(video_file_path, 'rb'))
+]
+
+response = requests.request("POST", url, files=files)
+
+print(response.text.encode('utf8'))
+
+```
+
+- Response:
+
+```json5
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "niqe_score": "65.64378642539235"
+  }
+}
+```
 
 ## 三 安装服务
 
