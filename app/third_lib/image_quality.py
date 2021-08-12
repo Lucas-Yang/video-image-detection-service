@@ -13,7 +13,7 @@ from cnstd import CnStd
 from skimage.measure import compare_ssim
 from paddleocr import PaddleOCR
 from app.third_lib.no_reference_image_quality import ImageNIQE,ImageBRISQUE
-from model import model_path
+from model import model_path, paddle_ocr_client
 
 
 class BlurredFrameDetector(object):
@@ -671,11 +671,7 @@ class ImageQualityIndexGenerator(object):
     def get_paddle_ocr_result_list(self):
         """图像paddleocr
         """
-        cls_path = model_path() + '/.paddleocr/2.1/cls'
-        det_path = model_path() + '/.paddleocr/2.1/det'
-        rec_path = model_path() + '/.paddleocr/2.1/rec'
-        paddle_ocr = PaddleOCR(det_model_dir=det_path, rec_model_dir=rec_path, cls_model_dir=cls_path,
-                               use_gpu=False, use_angle_cls=True, lang="ch")
+        paddle_ocr = paddle_ocr_client
         result = paddle_ocr.ocr(self.image_data, cls=True)
         ocr_result_list = []
         boxes = [line[0] for line in result]
@@ -686,7 +682,6 @@ class ImageQualityIndexGenerator(object):
             ocr_result_list.append(
                 {'text': texts[i], 'coordinate': ocr_box[i]}
             )
-        del paddle_ocr
         return ocr_result_list
 
     def get_if_blurred_frame(self):
@@ -743,3 +738,4 @@ class ImageQualityIndexGenerator(object):
 
 if __name__ == '__main__':
     pass
+
