@@ -233,6 +233,7 @@ async def get_video_niqe_score(file_input: UploadFile = File(...)):
     except Exception as err:
         return {"code": -1, "message": str(err)}
 
+
 @player_app.post('/video/brisque')
 async def get_video_brisque_score(file: UploadFile = File(...)):
     try:
