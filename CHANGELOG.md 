@@ -56,4 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 发布commit_id
 - 2bc4e785a9678e6b0cffd262a034ed8f13803fcf
 
+## [6.5.3] - 2021-09-02
+### 功能描述
+- mian.py中的workers改为指定大小4，使用multiprocessing.cpu_count()会在Caster发布时报错
 
+### 发布commit_id
+- 2bc4e785a9678e6b0cffd262a034ed8f13803fcf
