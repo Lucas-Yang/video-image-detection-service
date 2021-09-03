@@ -37,7 +37,7 @@ def get_dot_index(item: DotItem):
     else:
         return {
             "code": -2,
-            "message": "calculate index error, plz check log",
+            "message": "It may be due to the network, please try again",
         }
 
 

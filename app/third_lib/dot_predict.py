@@ -46,6 +46,7 @@ class DotVideoIndex(object):
             "main.ijk.first_video_render.tracker":
                 player_event_dict.get("main.ijk.first_video_render.tracker", None)  # 视频渲染首帧
         }
+        self.video_info_is_normal = True
 
     def __get_event_info(self):
         """根据buvid从uat es接口获取各个播放事件的最新数据,
@@ -128,7 +129,9 @@ class DotVideoIndex(object):
             except BaseException as error:
                 self.__logger.error(error)
                 raise Exception('ops-log es port return is error')
-        # print(json.dumps(player_event_dict))
+        # print(player_event_dict['main.ijk.asset_item_stop.tracker'])
+        # for key in player_event_dict.keys():
+        #     print(key, " ", player_event_dict[key])
         return player_event_dict
 
     def get_video_info(self):
@@ -189,7 +192,9 @@ class DotVideoIndex(object):
             buffering_time = self.get_buffering_total_time()
             asset_item_time_of_session = float(asset_item_stop_info[0].get("asset_item_time_of_session", 0))
             if asset_item_time_of_session == 0.0:
-                raise Exception("get freeze rate error, asset session time is 0")
+                self.__logger.error("Error in video data！")
+                self.video_info_is_normal = False
+                return -1
             else:
                 return buffering_time / asset_item_time_of_session if buffering_time else 0
         else:
@@ -254,6 +259,20 @@ class DotVideoIndex(object):
         else:
             return None, None
 
+    def get_dssf_pgfpt_fvrt(self):
+        """2021/9/3新增返回数据
+        获取软解补帧数 播放器获取到第一帧的时间 视频首帧准备好，可以开始渲染为止的耗时（ms）
+        :return:
+        """
+        asset_item_stop_info = self.event_dict.get("main.ijk.asset_item_stop.tracker")
+        if asset_item_stop_info:
+            decode_switch_soft_frame = asset_item_stop_info[0].get("decode_switch_soft_frame", "")
+            player_get_first_pkg_time = asset_item_stop_info[0].get("player_get_first_pkg_time", "")
+            first_video_ready_time = asset_item_stop_info[0].get("first_video_ready_time", "")
+            return decode_switch_soft_frame, player_get_first_pkg_time, first_video_ready_time
+        else:
+            return None, None, None
+
     def get_black_screen_rate(self):
         """
         :return:
@@ -286,10 +305,12 @@ class DotVideoIndex(object):
         asset_update_count = self.get_asset_update_count()
         audio_pts_diff_time = self.get_audio_pts_diff()
         ijk_cpu_rate, ijk_mem = self.get_ijk_cpu_mem_rate()
+        decode_switch_soft_frame, player_get_first_pkg_time, first_video_ready_time = self.get_dssf_pgfpt_fvrt()
         buffering_total_time = self.get_buffering_total_time()
         audio_error_code, video_error_code, exit_player_status = self.get_error()
 
         return {
+            "video_info_is_normal": self.video_info_is_normal,
             "video_base_info": {"video_duration": video_duration,
                                 "audio_duration": audio_duration,
                                 "video_bitrate": video_bitrate,
@@ -311,15 +332,22 @@ class DotVideoIndex(object):
             "asset_update_count": asset_update_count,
             "audio_pts_diff_time": audio_pts_diff_time,
             "ijk_cpu_rate": ijk_cpu_rate,
-            "ijk_mem": ijk_mem
+            "ijk_mem": ijk_mem,
+            "decode_switch_soft_frame": decode_switch_soft_frame,
+            "player_get_first_pkg_time": player_get_first_pkg_time,
+            "first_video_ready_time": first_video_ready_time
         }
 
 
 if __name__ == '__main__':
-    video_info = {"device_id": "awhuXmdXNVFlBGVTL1Mv",
-                  "buvid": "XYC4F53C2D90023964D4CDF500BFA73C5BC19",
-                  "start_time": "1597656191475",
-                  "end_time": "1597656852622"
+    video_info = {"device_id": "aQw_XG5XZV04W2leIl4i",
+                  "buvid": "XY815438805D646581F1D7BB6755AA86939CF",
+                  "start_time": "1630656316676",
+                  "end_time": "1630656600000"
                   }
     dot_handler = DotVideoIndex(video_dict=video_info)
-    print(json.dumps(dot_handler.get_total_index()))
+    # print(json.dumps(dot_handler.get_total_index()))
+    res = dot_handler.get_total_index()
+    for key in res.keys():
+        print(key, res[key])
+
