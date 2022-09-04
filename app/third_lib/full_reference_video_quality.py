@@ -100,7 +100,7 @@ class VideoSSIM(object):
         """
         :return:
         """
-        for frame in self.__cut_frame('/Users/luoyadong/Desktop/studio_video_1605840496434.mp4'):
+        for frame in self.__cut_frame('/Users/Desktop/studio_video_1605840496434.mp4'):
             cv2.imshow("test", frame)
             cv2.waitKey(1000)
 
@@ -157,6 +157,6 @@ class VideoPSNR(object):
         return psnr_score
 
 if __name__ == "__main__":
-    ssim_handler = VideoSSIM("/Users/luoyadong/Desktop/studio_video_1605840496434.mp4",
-                             "/Users/luoyadong/Desktop/studio_video_16058404964343.mp4")
+    ssim_handler = VideoSSIM("/Users/Desktop/studio_video_1605840496434.mp4",
+                             "/Users/Desktop/studio_video_16058404964343.mp4")
     print(ssim_handler.get_video_ssim_index())

@@ -176,6 +176,7 @@ async def get_vmaf_score(file_input: UploadFile = File(...),
     except Exception as err:
         return {"code": -1, "message": str(err)}
 
+
 @player_app.post('/video/psnr')
 async def get_psnr_score(file_input: UploadFile = File(...),
                          file_refer: UploadFile = File(...)

@@ -261,19 +261,19 @@ class DeepVideoIndex(object):
         self.frames_info_dict = {}
         self.__logger = LogManager("server.log").logger
 
-        self.__first_frame_server_url = "http://10.221.35.168:8502/v1/models/first_frame_model:predict"
-        self.__start_app_server_url = "http://10.221.35.168:8502/v1/models/start_app_model:predict"
-        self.__start_app_tencent_server_url = "http://10.221.35.168:8502/v1/models/start_app_tencent_model:predict"
-        self.__start_app_iqiyi_server_url = "http://10.221.35.168:8502/v1/models/start_app_iqiyi_model:predict"
-        self.__start_app_youku_server_url = "http://10.221.35.168:8502/v1/models/start_app_youku_model:predict"
-        self.__start_app_ixigua_server_url = "http://10.221.35.168:8502/v1/models/start_app_ixigua_model:predict"
-        self.__start_app_douyin_server_url = "http://10.221.35.168:8502/v1/models/start_app_douyin_model:predict"
-        self.__start_app_comic_server_url = "http://10.221.35.168:8502/v1/models/start_app_comic_model:predict"
+        self.__first_frame_server_url = "http://xxx/v1/models/first_frame_model:predict"
+        self.__start_app_server_url = "http://xxx/v1/models/start_app_model:predict"
+        self.__start_app_tencent_server_url = "http://xxx/v1/models/start_app_tencent_model:predict"
+        self.__start_app_iqiyi_server_url = "http://xxx/v1/models/start_app_iqiyi_model:predict"
+        self.__start_app_youku_server_url = "http://xxx/v1/models/start_app_youku_model:predict"
+        self.__start_app_ixigua_server_url = "http://xxx/v1/models/start_app_ixigua_model:predict"
+        self.__start_app_douyin_server_url = "http://xxx/v1/models/start_app_douyin_model:predict"
+        self.__start_app_comic_server_url = "http://xxx/v1/models/start_app_comic_model:predict"
 
         self.__blurred_screen_server_url = ""
         self.__black_screen_server_url = ""
         self.__freeze_screen_server_url = ""
-        self.__bfs_url = "http://uat-bfs.bilibili.co/bfs/davinci"  # 上传分帧图片到bfs保存
+        self.__bfs_url = ""  # 上传分帧图片到bfs保存
         self.__task_queue = queue.Queue()
         self.__session = self.__get_http_session(pool_connections=2,
                                                  pool_maxsize=1000,
@@ -678,13 +678,11 @@ class VideoColourCastDetector(object):
 
 
 if __name__ == '__main__':
-    # cv_info = {"temp_video_path": '/Users/luoyadong/Desktop/video.mp4'}
     # deep_index_handler = DeepVideoIndex(cv_info)
     # print(json.dumps(deep_index_handler.get_app_start_time("STARTAPPYOUKU")))
     # first_frame_time, cls_results_dict = deep_index_handler.get_first_frame_time()
     # freeze_frame_list = deep_index_handler.get_freeze_frame_info()
     # black_frame_list = deep_index_handler.get_black_frame_info()
-    videosilence = VideoSilenceDetector(video_path="/Users/bilibili/Downloads/这一不小心就当.mp4")
+    videosilence = VideoSilenceDetector(video_path="/Users/ownloads/这一不小心就当.mp4")
     print(videosilence.get_silent_times())
-    print(ffmpeg.probe("/Users/bilibili/Downloads/这一不小心就当.mp4")['format']['duration'])
-    # print(PlayerBlackScreenWatcher(video_info={'temp_video_path':'/Users/bilibili/Desktop/26899393.mp4'}).get_black_screen())
+    print(ffmpeg.probe("/Users//Downloads/这一不小心就当.mp4")['format']['duration'])
