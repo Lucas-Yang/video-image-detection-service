@@ -34,7 +34,7 @@
 |      |无参考视频质量指标：NIQE|
 |      |无参考视频质量指标：BRISQUE|
 | 图像指标|蓝屏，黑屏，绿屏检测|
-|       |bilibili错误检测(暂未上线)|
+|       |错误检测(暂未上线)|
 |       |花屏检测(轻视频版本上线，其他需求待适配开发)|
 |       |图像模板匹配(初版上线)|
 |       |图像OCR(初版上线)|
@@ -245,7 +245,7 @@ Object{...},
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/player/index/silence"
+url = "http://xxx/player/index/silence"
 
 files = {"file_src": open(filepath, "rb")}
 
@@ -283,7 +283,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/player/video/vmaf"
+url = "http://xxx/player/video/vmaf"
 
 files = [
     ('file_input', open(video_file_path, 'rb')),
@@ -348,7 +348,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/green-frame-detect"
+url = "http://xxx/image/quality/green-frame-detect"
 
 files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
@@ -387,7 +387,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/watermark-detect"
+url = "http://xxx/image/quality/watermark-detect"
 
 files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
@@ -431,7 +431,7 @@ print(response.json())
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/colorlayer-detect"
+url = "http://xxx/image/quality/colorlayer-detect"
 
 files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
@@ -467,7 +467,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/black_white-detect"
+url = "http://xxx/image/quality/black_white-detect"
 
 files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
@@ -501,7 +501,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/player/video/colorcast-detect"
+url = "http://xxx/player/video/colorcast-detect"
 
 files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
@@ -533,7 +533,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/blurred-detect"
+url = "http://xxx/image/quality/blurred-detect"
 
 files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
@@ -564,7 +564,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/similarity-v2"
+url = "http://xxx/image/quality/similarity-v2"
 
 files = {"file_src":('file_src.png',open(filepath_src, "rb"),'image/png'), "file_target":('file_target.png',open(filepath_tar, "rb"),'image/png')}
 
@@ -595,7 +595,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/image-match"
+url = "http://xxx/image/quality/image-match"
 
 files = {"file_src":('file_src.png',open(filepath_src, "rb"),'image/png'), "file_target":('file_target.png',open(filepath_tar, "rb"),'image/png')}
 
@@ -614,7 +614,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/image/quality/char-recognize"
+url = "http://xxx/image/quality/char-recognize"
 
 files = {"file": ('file.png',open(filepath, "rb"),'image/png')}
 
@@ -646,7 +646,7 @@ print(response.json())
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/player/video/psnr"
+url = "http://xxx/player/video/psnr"
 
 files = [
     ('file_input', open(video_file_path, 'rb')),
@@ -679,7 +679,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/player/video/niqe"
+url = "http://xxx/player/video/niqe"
 
 files = [
     ('file_input', open(video_file_path, 'rb'))
@@ -712,7 +712,7 @@ print(response.text.encode('utf8'))
 ```python
 import requests
 
-url = "http://hassan.bilibili.co/player/video/brisque"
+url = "http://xxx/player/video/brisque"
 
 files = [
     ('file_input', open(video_file_path, 'rb'))
@@ -749,8 +749,8 @@ print(response.text.encode('utf8'))
 docker打包：
 
 - docker build -t player-index-server:2.0 . --force-rm=true --rm=true
-- docker tag player-index-server:2.0 hub.bilibili.co/luoyadong/player-index-server:2.0
-- docker push hub.bilibili.co/luoyadong/player-index-server:2.0
+- docker tag player-index-server:2.0 xxx/player-index-server:2.0
+- docker push xxx/player-index-server:2.0
 
 依赖文档：
 

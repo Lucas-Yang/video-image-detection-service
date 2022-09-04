@@ -1,5 +1,5 @@
 FROM cntrump/ubuntu-ffmpeg:4.2.2
-LABEL maintainer="luka luoyadong@bilibili.com"
+LABEL maintainer="luka luoyadon"
 COPY requirements.txt ./
 
 RUN apt-get update && apt-get install -y \

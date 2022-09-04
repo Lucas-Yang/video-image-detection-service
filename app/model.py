@@ -323,7 +323,7 @@ class ImageIndex(object):
 if __name__ == '__main__':
     import json
 
-    cv_info_dict = {"temp_video_path": "/Users/luoyadong/PycharmProjects/PlayerIndex/result/screen.mp4",
+    cv_info_dict = {"temp_video_path": "/Users/PycharmProjects/PlayerIndex/result/screen.mp4",
                     "index_types": ["FREEZEFRAME", "BLACKFRAME", "FIRSTFRAME"]
                     }
     dot_info_dict = {
